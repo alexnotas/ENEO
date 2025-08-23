@@ -1,100 +1,87 @@
-/**
- * ENEO Asteroid Impact Simulation - Client-Side Application Controller
- * 
- * This JavaScript module manages the interactive web interface for asteroid impact simulations.
- * It coordinates user interactions, map visualizations, API communications, and result displays
- * to provide a comprehensive asteroid impact analysis platform.
- * 
- * Key Responsibilities:
- * - Platform-specific UI scaling and responsive design handling
- * - Interactive map management with damage zone visualization
- * - Simulation parameter input and validation
- * - Real-time API communication with backend simulation engine
- * - Dynamic result presentation with tabbed interface
- * - Geographic coordinate handling and zone rendering
- * - Integration with NASA Sentry API for real NEO data
- * 
- * Technical Features:
- * - Cross-platform compatibility with Windows-specific scaling
- * - Leaflet.js integration for advanced mapping capabilities
- * - Dynamic chart generation and effect visualization
- * - Responsive layout adaptation for mobile and desktop
- * - Real-time loading animations and progress tracking
- * 
- * Author: Alexandros Notas
- * Institution: National Technical University of Athens
- * Date: June 2025
- */
-
-// Platform Detection and UI Scaling Management
-// Handles Windows-specific scaling issues and responsive design across different screen sizes
+// Detect Windows platform and apply zoom scaling
 document.addEventListener('DOMContentLoaded', function() {
-  // Create application wrapper to enable controlled scaling without affecting modals
+  // Create a wrapper element for the entire application content.
+  // This is a workaround to apply scaling transforms for display correction on certain platforms (like Windows)
+  // without affecting elements that should remain fixed, like modals or overlays.
   const wrapper = document.createElement('div');
   wrapper.id = 'app-wrapper';
+  // Move all existing body content into the new wrapper.
   while (document.body.firstChild) {
     wrapper.appendChild(document.body.firstChild);
   }
   document.body.appendChild(wrapper);
 
-  // Detect Windows platform for targeted scaling adjustments
+  // --- Platform-Specific Scaling for Windows ---
+  // Check if the user agent string indicates a Windows operating system.
   const isWindows = navigator.userAgent.indexOf('Windows') !== -1;
   
-  // Apply initial scaling based on platform and screen size
+  // Apply scaling immediately on load if the platform is Windows.
   applyAppropriateScaling(isWindows, wrapper);
   
-  // Monitor window resize events for cross-screen compatibility
+  // Add a resize event listener specifically for Windows.
+  // This handles cases where the user might move the browser window between monitors
+  // with different scaling factors, requiring a re-evaluation of the transform.
   if (isWindows) {
     let lastWidth = window.innerWidth;
     let resizeTimeout;
     
     window.addEventListener('resize', function() {
-      // Clear any pending resize handler
+      // Use a timeout to debounce the resize event, preventing the handler
+      // from firing too frequently while the user is resizing the window.
       clearTimeout(resizeTimeout);
       
-      // Set a timeout to prevent multiple rapid executions
       resizeTimeout = setTimeout(function() {
-        // Check if width changed significantly (indicating potential monitor switch)
+        // Check if the window width has changed significantly. A large change
+        // is more likely to be a monitor switch than a simple window resize.
         const widthChange = Math.abs(window.innerWidth - lastWidth);
-        if (widthChange > 200) { // Threshold for significant change
+        if (widthChange > 200) { // Threshold for a significant change.
           console.log('Significant width change detected, reapplying scaling');
           applyAppropriateScaling(isWindows, wrapper);
-          lastWidth = window.innerWidth;
+          lastWidth = window.innerWidth; // Update the last known width.
         }
-      }, 300);
+      }, 300); // Wait 300ms after the last resize event to execute.
     });
   }
   
-  // Fix loading overlay to be position fixed
+  // --- UI Element Positioning Fixes ---
+  // Ensure the loading overlay is a direct child of the body and positioned fixed.
+  // This prevents it from being affected by the scaling applied to the app-wrapper.
   const loadingOverlay = document.querySelector('.loading-overlay');
   if (loadingOverlay) {
-    // Move loading overlay to be direct child of body
-    document.body.appendChild(loadingOverlay);
+    document.body.appendChild(loadingOverlay); // Move to be a direct child of <body>.
     
+    // Apply styles to make it a full-screen, fixed overlay.
     loadingOverlay.style.position = 'fixed';
     loadingOverlay.style.top = '0';
     loadingOverlay.style.left = '0';
     loadingOverlay.style.right = '0';
     loadingOverlay.style.bottom = '0';
-    loadingOverlay.style.zIndex = '9999';
+    loadingOverlay.style.zIndex = '9999'; // Ensure it's on top of all other content.
   }
 
-  // Move the About modal to be a direct child of the body.
-  // This prevents it from being scaled down with the app wrapper on Windows.
+  // Move the "About" modal to be a direct child of the body.
+  // This also prevents it from being scaled down along with the main app content on Windows.
   const aboutModal = document.getElementById('aboutModal');
   if (aboutModal) {
     document.body.appendChild(aboutModal);
   }
 });
 
-// Function to apply scaling based on current window width
+/**
+ * Applies or removes CSS scaling to the main app wrapper based on window width.
+ * This is primarily intended to correct display issues on Windows systems with
+ * certain screen resolutions and scaling settings.
+ * @param {boolean} isWindows - Flag indicating if the current OS is Windows.
+ * @param {HTMLElement} wrapper - The main application wrapper element.
+ */
 function applyAppropriateScaling(isWindows, wrapper) {
-  if (!isWindows) return;
+  if (!isWindows) return; // Only apply scaling on Windows.
   
   const currentWidth = window.innerWidth;
+  // Define the resolution range where scaling is needed.
   const needsScaling = currentWidth >= 992 && currentWidth < 1920;
   
-  // Remove any existing scaling from wrapper
+  // Reset any existing scaling styles first to ensure a clean state.
   wrapper.style.transform = '';
   wrapper.style.transformOrigin = '';
   wrapper.style.width = '';
@@ -104,84 +91,96 @@ function applyAppropriateScaling(isWindows, wrapper) {
   wrapper.style.height = '';
   
   if (needsScaling) {
-    // Apply platform-specific scaling for Windows
+    // Add a class to the root element for platform-specific CSS rules.
     document.documentElement.classList.add('windows-platform');
     
-    // Apply transform scale to wrapper instead of body
+    // Apply a 0.9 scale transform to the wrapper.
     wrapper.style.transform = 'scale(0.9)';
-    wrapper.style.transformOrigin = 'top center';
-    wrapper.style.width = '111.11%'; // 100% ÷ 0.9 to compensate for scaling
-    wrapper.style.marginLeft = '-5.55%'; // Center the scaled content
-    wrapper.style.overflowX = 'hidden'; // Prevent horizontal scrollbar only
-    wrapper.style.overflowY = 'auto'; // Allow vertical scrolling
-    wrapper.style.height = 'auto'; // Allow content to determine height
+    wrapper.style.transformOrigin = 'top center'; // Scale from the top center.
+    // Compensate for the scaling by increasing the wrapper's width. 100% / 0.9 = 111.11%
+    wrapper.style.width = '111.11%'; 
+    // Adjust the margin to re-center the scaled content.
+    wrapper.style.marginLeft = '-5.55%'; 
+    wrapper.style.overflowX = 'hidden'; // Prevent horizontal scrollbar caused by scaling.
+    wrapper.style.overflowY = 'auto';   // Allow vertical scrolling within the wrapper.
+    wrapper.style.height = 'auto';
     
-    // Set body height to match scaled content
+    // Adjust body height to ensure the viewport is scrollable.
     document.body.style.height = '90vh';
     document.body.style.overflowY = 'auto';
     
-    // Force refresh layout to ensure proper scaling
+    // Force a layout refresh by dispatching a resize event.
+    // This helps ensure all elements correctly adjust to the new scaling.
     setTimeout(function() {
       window.dispatchEvent(new Event('resize'));
     }, 100);
   } else {
-    // Remove Windows platform class if scaling is no longer needed
+    // If scaling is not needed, remove the platform-specific class.
     document.documentElement.classList.remove('windows-platform');
     
-    // Reset body styles when not scaled
+    // Reset body styles to their default state.
     document.body.style.height = '';
     document.body.style.overflowY = '';
   }
 }
 
-// Initialize map with world bounds
+// --- Leaflet Map Initialization ---
+
+// Initialize the Leaflet map within the 'map' div.
 const map = L.map('map', {
-  minZoom: 2,
-  maxZoom: 18,
-  maxBounds: [
+  minZoom: 2,       // Minimum zoom level (zoomed out).
+  maxZoom: 18,      // Maximum zoom level (zoomed in).
+  maxBounds: [      // Restrict map panning to the geographical bounds of the world.
     [-90, -180],
     [90, 180]
   ],
-  maxBoundsViscosity: 1.0
-}).setView([0, 0], 2);
+  maxBoundsViscosity: 1.0 // Makes the bounds completely solid.
+}).setView([0, 0], 2); // Set initial view to the center of the world, zoomed out.
 
-// Create custom panes for crater visualization
-// Pane for the crater image (non-interactive)
+// Create custom panes for rendering crater visuals.
+// Panes allow controlling the stacking order of layers on the map.
+// Pane for the crater image (non-interactive).
 map.createPane('craterImagePane');
-map.getPane('craterImagePane').style.zIndex = 450; // Default overlayPane is 400
+map.getPane('craterImagePane').style.zIndex = 450; // Below the border pane.
 
-// Pane for the crater border (interactive)
+// Pane for the crater border (interactive, e.g., for popups).
 map.createPane('craterBorderPane');
-map.getPane('craterBorderPane').style.zIndex = 451; // Above craterImagePane
+map.getPane('craterBorderPane').style.zIndex = 451; // Above the image pane.
 
-// Use ESRI World Map tile layer
+// Use the ESRI World Street Map as the base tile layer.
 L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-  attribution: 'Tiles &copy; Esri',
-  noWrap: true,
-  bounds: [
+  attribution: 'Tiles &copy; Esri', // Copyright attribution for the map tiles.
+  noWrap: true, // Prevents tiles from repeating horizontally.
+  bounds: [ // Ensures tiles are only loaded within the world bounds.
     [-90, -180],
     [90, 180]
   ]
 }).addTo(map);
 
-let marker;
+// --- Map Interaction ---
+
+let marker; // Variable to hold the user-placed marker.
+// Event listener for clicks on the map.
 map.on('click', function(e) {
-  // Check if the click is within the map's maxBounds
+  // Validate that the click is within the defined map boundaries.
   if (map.options.maxBounds && !map.options.maxBounds.contains(e.latlng)) {
     alert("Please select a valid point within the map boundaries.");
-    return; // Stop further processing if click is out of bounds
+    return; // Stop if the click is outside the valid area.
   }
 
+  // If a marker already exists, remove it before placing a new one.
   if (marker) {
     map.removeLayer(marker);
   }
+  // Create a new marker at the clicked location.
   marker = L.marker(e.latlng, {
-    zIndexOffset: 1000  // Ensure marker stays on top
+    zIndexOffset: 1000  // Ensure the marker is always on top of other layers.
   }).addTo(map);
+  // Update the hidden form fields with the selected latitude and longitude.
   document.getElementById('latitude').value = e.latlng.lat;
   document.getElementById('longitude').value = e.latlng.lng;
 
-  // Fetch ocean depth but do not display it in a popup
+  // Asynchronously fetch the ocean depth for the selected coordinates.
   fetch('/get_ocean_depth', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -189,19 +188,19 @@ map.on('click', function(e) {
   })
   .then(response => {
     if (!response.ok) {
-      // Try to parse error json if server sent one
+      // If the server returns an error, try to parse the JSON error message.
       return response.json().then(errData => {
         throw new Error(errData.error || `HTTP error ${response.status}`);
       }).catch(() => {
-        // Fallback if error json parsing fails
+        // Fallback if the error response is not JSON.
         throw new Error(`HTTP error ${response.status}`);
       });
     }
     return response.json();
   })
   .then(data => {
-    // Ocean depth is fetched, but we are not creating a popup.
-    // You can still use the 'data.depth' if needed elsewhere.
+    // The ocean depth is fetched but not displayed in a popup.
+    // It's logged to the console for debugging or informational purposes.
     if (data.depth !== undefined) {
       if (data.depth > 0) {
         console.log(`Ocean Depth: ${data.depth.toFixed(2)} m`);
@@ -215,11 +214,15 @@ map.on('click', function(e) {
     }
   })
   .catch(error => {
+    // Log any errors during the fetch process to the console.
     console.error('Error fetching ocean depth:', error);
-    // Error is logged, but no popup is shown.
   });
 });
 
+// --- Zone Visualization ---
+
+// An object to hold Leaflet LayerGroups for different types of hazard zones.
+// This allows toggling them on and off as a group.
 let zoneLayers = {
   seismic: new L.LayerGroup(),
   thermal: new L.LayerGroup(),
@@ -227,60 +230,72 @@ let zoneLayers = {
   ejecta: new L.LayerGroup(),
   vulnerability: new L.LayerGroup(),
   crater: new L.LayerGroup(),
-  wind: new L.LayerGroup(), // Add this line to register the wind layer
+  wind: new L.LayerGroup(),
   tsunami: new L.LayerGroup()
 };
 
+/**
+ * Returns a color for a given hazard zone type and value.
+ * @param {string} type - The type of zone (e.g., 'seismic', 'thermal').
+ * @param {number} value - A value (e.g., vulnerability threshold) to determine color shade.
+ * @returns {string} An RGBA color string.
+ */
 function getZoneColor(type, value) {
-  const opacity = 0.6;
+  const opacity = 0.6; // Base opacity for the zones.
   switch (type) {
     case 'vulnerability':
-      if (value >= 0.75) return `rgba(255, 0, 0, ${opacity + 0.1})`;       // Darker Red for highest
-      if (value >= 0.5) return `rgba(255, 120, 0, ${opacity})`;     // Orange
-      if (value >= 0.25) return `rgba(255, 220, 0, ${opacity - 0.1})`;    // Yellow
-      return `rgba(0, 255, 0, ${opacity - 0.2})`; // Lighter Green for lowest
+      if (value >= 0.75) return `rgba(255, 0, 0, ${opacity + 0.1})`;       // Darker Red for highest risk
+      if (value >= 0.5) return `rgba(255, 120, 0, ${opacity})`;     // Orange for high risk
+      if (value >= 0.25) return `rgba(255, 220, 0, ${opacity - 0.1})`;    // Yellow for medium risk
+      return `rgba(0, 255, 0, ${opacity - 0.2})`; // Lighter Green for lowest risk
     case 'seismic':
       return `rgba(255, 0, 0, ${opacity})`; // Red
     case 'thermal':
       return `rgba(255, 102, 0, ${opacity})`; // Orange
-    case 'airblast': // This is for Overpressure
-      return `rgba(0, 200, 200, ${opacity})`; // Teal/cyan for Overpressure
+    case 'airblast': // Overpressure
+      return `rgba(0, 200, 200, ${opacity})`; // Teal/cyan
     case 'wind':
-      return `rgba(0, 102, 255, ${opacity})`; // Blue for wind zones
+      return `rgba(0, 102, 255, ${opacity})`; // Blue
     case 'ejecta':
       return `rgba(102, 51, 0, ${opacity})`; // Brown
-    case 'crater': // Added case for crater circle
-      return `rgba(128, 128, 128, ${opacity})`; // Grey for crater
+    case 'crater':
+      return `rgba(128, 128, 128, ${opacity})`; // Grey
     case 'tsunami':
-      return `rgba(0, 100, 255, ${opacity})`; // Blue for tsunami
+      return `rgba(0, 100, 255, ${opacity})`; // Blue
     default:
-      return `rgba(102, 102, 102, ${opacity})`; // Gray
+      return `rgba(102, 102, 102, ${opacity})`; // Default gray for unknown types.
   }
 }
 
+/**
+ * Removes all hazard zone layers from the map.
+ */
 function clearAllZones() {
   Object.values(zoneLayers).forEach(layer => {
     if (map.hasLayer(layer)) {
       map.removeLayer(layer);
     }
-    layer.clearLayers();
+    layer.clearLayers(); // Also clear the layers within the LayerGroup.
   });
 }
 
+/**
+ * Displays hazard zones of a specific type on the map.
+ * @param {string} type - The type of zone to display (e.g., 'seismic', 'crater').
+ * @param {Array} zoneSpecificData - The data array for the specified zone type.
+ */
 function showZones(type, zoneSpecificData) {
-  clearAllZones();
+  clearAllZones(); // Start by clearing any existing zones.
 
-  // If Tsunami type is selected for visualization, show nothing and fly to marker.
-  // This effectively removes tsunami visualization from the map controls.
+  // Special handling for 'tsunami': do not show any zones, just fly to the marker.
   if (type === 'tsunami') {
     if (marker) {
-        // Fly to marker to indicate the location is still relevant, but no zones shown.
         map.flyTo(marker.getLatLng(), map.getZoom() < 5 ? 5 : map.getZoom());
     }
-    // No zones are drawn for tsunami type.
     return;
   }
 
+  // If 'none' is selected, just center the map on the marker.
   if (type === 'none') {
     if (marker) { 
         map.flyTo(marker.getLatLng(), map.getZoom() < 5 ? 5 : map.getZoom());
@@ -288,8 +303,7 @@ function showZones(type, zoneSpecificData) {
     return;
   }
   
-  // Determine the actual Leaflet layer to use
-  // For specific vulnerability types, use the general 'vulnerability' layer
+  // Determine the correct Leaflet layer group. Vulnerability subtypes all use the same layer.
   const actualZoneLayer = type.startsWith('vulnerability_') ? zoneLayers.vulnerability : zoneLayers[type];
   
   if (!actualZoneLayer) {
@@ -298,7 +312,8 @@ function showZones(type, zoneSpecificData) {
       return;
   }
 
-  // Handle crater type separately
+  // --- Crater Visualization ---
+  // The crater is handled separately as it's a single circle, not a series of zones.
   if (type === 'crater') {
     const fullResultsData = JSON.parse(document.querySelector('#resultsContainer').dataset.lastResults || '{}');
     if (fullResultsData && fullResultsData.crater && 
@@ -311,15 +326,17 @@ function showZones(type, zoneSpecificData) {
       
       zoneLayers.crater.clearLayers();
 
+      // Create a circle representing the crater.
       const craterCircle = L.circle(impactLatLng, {
         radius: craterRadiusMeters,
         color: '#654321',
         fillColor: '#654321',
         fillOpacity: 1.0,
         weight: 1.5,
-        pane: 'craterBorderPane'
+        pane: 'craterBorderPane' // Render in the custom pane.
       });
       
+      // Bind a popup with crater information.
       craterCircle.bindPopup(`
         <strong>Crater</strong><br>
         Diameter: ${(craterDiameterMeters / 1000).toFixed(2)} km
@@ -328,18 +345,20 @@ function showZones(type, zoneSpecificData) {
       zoneLayers.crater.addLayer(craterCircle);
       map.addLayer(zoneLayers.crater);
       
+      // Zoom the map to fit the crater bounds.
       const bounds = craterCircle.getBounds();
       map.flyToBounds(bounds, { padding: [30, 30], maxZoom: Math.min(map.getMaxZoom(), 17) });
 
     } else {
+      // If no crater data, just fly to the marker.
       if (marker) {
           map.flyTo(marker.getLatLng(), map.getZoom());
       }
     }
-    return; 
+    return; // End execution for crater type.
   }
   
-  // For other zone types (including specific vulnerabilities)
+  // --- General Zone Visualization ---
   if (!zoneSpecificData || (Array.isArray(zoneSpecificData) && zoneSpecificData.length === 0)) {
       if (marker) {
           map.flyTo(marker.getLatLng(), map.getZoom());
@@ -347,6 +366,8 @@ function showZones(type, zoneSpecificData) {
       return;
   }
 
+  // Filter and sort the zones. For seismic, only show zones for Richter 4+.
+  // Sort by distance descending to draw larger circles first.
   const initiallyFilteredAndSortedZones = [...zoneSpecificData]
     .filter(zone => {
       if (type === 'seismic') {
@@ -363,6 +384,7 @@ function showZones(type, zoneSpecificData) {
     return;
   }
 
+  // Further filter out zones that are not visually meaningful (e.g., tiny vulnerability zones).
   const visualizableZones = initiallyFilteredAndSortedZones.filter(zone => {
       if (type.startsWith('vulnerability_')) {
           if (zone.threshold === 1.0 && zone.end_distance <= 0.01) {
@@ -377,24 +399,29 @@ function showZones(type, zoneSpecificData) {
     return;
   }
 
+  // Define constants for visualization limits.
   const EARTH_RADIUS_KM = 10000;
   const EARTH_DIAMETER_KM = EARTH_RADIUS_KM * 2;
   const maxVisualizationDistance = EARTH_DIAMETER_KM;
   
+  // Get the maximum distance from the sorted zones to use for map bounds calculation.
   const maxDistance = Math.min(visualizableZones[0].end_distance, maxVisualizationDistance);
   
+  // Iterate over the visualizable zones and create circles for each.
   visualizableZones.forEach(zone => {
     const radiusInMeters = Math.min(zone.end_distance, EARTH_DIAMETER_KM) * 1000;
       
     if (marker) {
       const impactLocation = marker.getLatLng();
+      // Check if the circle will cross the International Date Line.
       const crossesDateLine = Math.abs(impactLocation.lng) + (radiusInMeters / 111319.9) > 180;
         
       let popupContent = '';
       let zoneColorConfig;
 
+      // Create popup content and determine color based on zone type.
       if (type.startsWith('vulnerability_')) {
-        let specificVulnerabilityName = "Vulnerability";
+        let specificVulnerabilityName = "Vulnerability"; // Default name
         if (type === 'vulnerability_thermal') specificVulnerabilityName = "Thermal-Induced Vulnerability";
         else if (type === 'vulnerability_overpressure') specificVulnerabilityName = "Overpressure-Induced Vulnerability";
         else if (type === 'vulnerability_seismic') specificVulnerabilityName = "Seismic-Induced Vulnerability";
@@ -415,10 +442,11 @@ function showZones(type, zoneSpecificData) {
           Range: ${zone.start_distance.toFixed(2)} - ${zone.end_distance.toFixed(2)} km
         `;
         const fillColor = getZoneColor(type, zone.threshold || 0.5);
-        const outlineColor = type === 'thermal' ? '#FF4500' : fillColor;
+        const outlineColor = type === 'thermal' ? '#FF4500' : fillColor; // Special outline for thermal.
         zoneColorConfig = { outline: outlineColor, fill: fillColor };
       }
         
+      // Create the primary circle for the zone.
       const circle = L.circle(impactLocation, {
         radius: radiusInMeters,
         color: zoneColorConfig.outline,
@@ -430,6 +458,7 @@ function showZones(type, zoneSpecificData) {
       circle.bindPopup(popupContent);
       actualZoneLayer.addLayer(circle);
         
+      // If the circle crosses the date line, create a "wrapped" circle on the other side of the map.
       if (crossesDateLine) {
         const wrappedLng = impactLocation.lng > 0 ? 
           impactLocation.lng - 360 : 
@@ -450,27 +479,34 @@ function showZones(type, zoneSpecificData) {
     }
   });
 
+  // Add the completed layer group to the map.
   map.addLayer(actualZoneLayer);
 
+  // If the effect radius is larger than the Earth's radius, just zoom out to a global view.
   if (maxDistance > EARTH_RADIUS_KM) {
     map.setView([0, 0], 1);
     return;
   }
 
+  // --- Adjust Map View to Fit Zones ---
   if (marker) {
     try {
       const center = marker.getLatLng();
+      // Approximate conversion from km to degrees, accounting for latitude.
       const kmPerLongitudeDegree = 111.32 * Math.cos(center.lat * Math.PI / 180);
       const kmPerLatitudeDegree = 111.32;
-      const adjustedMaxDistance = maxDistance * 1.3;
+      const adjustedMaxDistance = maxDistance * 1.3 // Add a 30% buffer.
       const latDegrees = adjustedMaxDistance / kmPerLatitudeDegree;
+      // Handle longitude degrees carefully near the poles.
       const lonDegrees = Math.abs(center.lat) > 85 ? 360 : adjustedMaxDistance / kmPerLongitudeDegree;
       
+      // Create a bounding box that encompasses the largest zone.
       const bounds = L.latLngBounds(
         [Math.max(-90, center.lat - latDegrees), center.lng - lonDegrees],
         [Math.min(90, center.lat + latDegrees), center.lng + lonDegrees]
       );
 
+      // Use flyToBounds for a smooth animated transition to the new view.
       const paddingPixels = Math.max(100, adjustedMaxDistance / 2);
       map.flyToBounds(bounds, {
         padding: [paddingPixels, paddingPixels],
@@ -479,8 +515,9 @@ function showZones(type, zoneSpecificData) {
         animate: true,
         easeLinearity: 0.3
       });
-      marker.bringToFront();
+      marker.bringToFront(); // Ensure marker is visible on top of zones.
     } catch (e) {
+      // Fallback to a simpler flyTo if bounds calculation fails.
       console.warn('Error fitting bounds:', e);
       const zoomLevel = Math.min(10, Math.max(1, 14 - Math.log2(maxDistance)));
       map.flyTo(marker.getLatLng(), zoomLevel, {
@@ -492,15 +529,19 @@ function showZones(type, zoneSpecificData) {
   }
 }
 
+/**
+ * Populates the input form with random (but plausible) sample data.
+ * Useful for demonstrating the application without manual input.
+ */
 function loadSampleData() {
-  // Generate random values within logical ranges
-  const diameter = Math.floor(Math.random() * 1451) + 50;    // 50-1500 (changed from 50-500)
-  const density = Math.floor(Math.random() * 1001) + 2500;    // 2500-3500
-  const velocity = Math.floor(Math.random() * 16) + 17;       // 17-32
-  const entry_angle = Math.floor(Math.random() * 31) + 35;    // 35-65
-  const distance = Math.floor(Math.random() * 91) + 10;       // 10-100
+  // Generate random values within logical ranges for each parameter.
+  const diameter = Math.floor(Math.random() * 1451) + 50;    // 50-1500 m
+  const density = Math.floor(Math.random() * 1001) + 2500;    // 2500-3500 kg/m^3
+  const velocity = Math.floor(Math.random() * 16) + 17;       // 17-32 km/s
+  const entry_angle = Math.floor(Math.random() * 31) + 35;    // 35-65 degrees
+  const distance = Math.floor(Math.random() * 91) + 10;       // 10-100 km
   
-  // Set the form values
+  // Set the form input values.
   document.getElementById("diameter").value = diameter;
   document.getElementById("density").value = density;
   document.getElementById("velocity").value = velocity;
@@ -509,80 +550,49 @@ function loadSampleData() {
 }
 
 /**
- * Fetches NEO data from the NASA Sentry API via the backend and populates the form.
+ * Parses a custom-formatted text block into a structured JavaScript object.
+ * The text is expected to have sections delineated by "=== Section Name ===".
+ * @param {string} text - The raw text to parse.
+ * @returns {Object} A structured object representing the parsed sections.
  */
-async function loadNasaData() {
-  const nasaBtn = document.getElementById('nasaDataBtn');
-  const originalText = nasaBtn.innerHTML;
-  
-  // Disable button and show loading state
-  nasaBtn.disabled = true;
-  nasaBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Fetching...`;
-
-  try {
-    const response = await fetch('/generate-neo');
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Failed to fetch data from NASA Sentry API.' }));
-      throw new Error(errorData.error || `HTTP Error: ${response.status}`);
-    }
-    const data = await response.json();
-
-    if (data) {
-      // Populate form fields with data from the API
-      // Use logical OR (||) to keep existing value if API data is null/undefined
-      document.getElementById("diameter").value = data.diameter || document.getElementById("diameter").value;
-      document.getElementById("velocity").value = data.velocity || document.getElementById("velocity").value;
-      document.getElementById("density").value = data.density || document.getElementById("density").value;
-      document.getElementById("entry_angle").value = data.entry_angle || document.getElementById("entry_angle").value;
-      
-      // Sentry API doesn't provide a reference distance, so we can use a sensible default or keep the existing value
-      if (!document.getElementById("distance").value) {
-        document.getElementById("distance").value = 100;
-      }
-      
-      // Optionally, display an alert with the object's name
-      if (data.name) {
-        alert(`Loaded data for NEO: ${data.name}`);
-      }
-
-    } else {
-      throw new Error("Received empty data from the server.");
-    }
-  } catch (error) {
-    console.error('Error fetching NASA data:', error);
-    alert(`Could not load NASA data: ${error.message}`);
-  } finally {
-    // Restore button to its original state
-    nasaBtn.disabled = false;
-    nasaBtn.innerHTML = originalText;
-  }
-}
-
 function parseResultsText(text) {
   const sections = {};
+  // Split the text by the section headers.
   const splitSections = text.split(/===+ (.*?) ===+/g).slice(1);
 
   for (let i = 0; i < splitSections.length; i += 2) {
     const sectionName = splitSections[i].trim();
+    // Process the content of each section.
     const content = splitSections[i + 1]
       .trim()
-      .split("\n")
-      .filter((line) => line.trim())
+      .split("\n") // Split by lines.
+      .filter((line) => line.trim()) // Remove empty lines.
       .map((line) => {
+        // Split each line into a key-value pair.
         const [key, ...values] = line.split(":");
         return {
           key: key?.trim() || "",
           value: values.join(":").trim(),
         };
       });
+    // Store the content in the sections object with a normalized key.
     sections[sectionName.toLowerCase().replace(/ /g, "_")] = content;
   }
   return sections;
 }
 
+/**
+ * Creates an HTML card for displaying a specific impact effect.
+ * @param {string} title - The main title for the card.
+ * @param {string} value - The value of the effect.
+ * @param {number} distance - The distance at which the effect is measured.
+ * @param {string} [subtitle=""] - An optional subtitle.
+ * @returns {string} An HTML string for the effect card.
+ */
 function createEffectCard(title, value, distance, subtitle = "") {
+  // Automatically add the distance to the title for certain effect types.
   if (
-    distance !== undefined && // Check if distance is actually provided
+    distance !== undefined &&
     ["overpressure", "seismic", "thermal", "ejecta", "tsunami"].some((word) => 
       title.toLowerCase().includes(word)
     ) &&
@@ -601,7 +611,15 @@ function createEffectCard(title, value, distance, subtitle = "") {
   `;
 }
 
+/**
+ * Creates an HTML card for displaying a danger zone's range.
+ * @param {string} label - The label for the danger zone.
+ * @param {string} range - The range of the zone (e.g., "10-20 km").
+ * @param {number} distance - The target distance for context.
+ * @returns {string} An HTML string for the danger zone card.
+ */
 function createDangerZone(label, range, distance) {
+  // Similar to createEffectCard, add distance context to the label.
   if (
     ["overpressure", "seismic", "thermal", "ejecta", "tsunami"].some((word) => 
       label.toLowerCase().includes(word)
@@ -620,88 +638,31 @@ function createDangerZone(label, range, distance) {
   `;
 }
 
-function populateComparisonBoxes(comparisons) {
-  // Clear all previous comparison content
-  document.querySelectorAll('.comparison-box').forEach(box => {
-    box.innerHTML = '';
-    box.classList.remove('visible');
-  });
-
-  if (!comparisons) return;
-
-  // Energy comparison (for Overpressure tab, as it's energy-driven)
-  if (comparisons.energy) {
-    const energyHtml = `
-      <i class="mdi mdi-scale-balance comparison-icon"></i>
-      <span class="comparison-text">${comparisons.energy}</span>
-    `;
-    const overpressureBox = document.getElementById('overpressureComparison');
-    if (overpressureBox) {
-        overpressureBox.innerHTML = energyHtml;
-        overpressureBox.classList.add('visible');
-    }
-  }
-
-  // Seismic comparison — show the comparison sentence and the nearest historical quake (with magnitude)
-  if (comparisons.seismic || comparisons.seismic_event) {
-    const seismicBox = document.getElementById('seismicComparison');
-    const mainText = comparisons.seismic ? `<div class="comparison-text">${comparisons.seismic}</div>` : '';
-    let eventLine = '';
-    if (comparisons.seismic_event && comparisons.seismic_event.formatted) {
-      eventLine = `<div style="margin-top:6px;font-size:0.95rem;color:var(--text-primary);opacity:0.95"><strong>Compared to:</strong> ${comparisons.seismic_event.formatted}</div>`;
-    }
-    if (seismicBox) {
-      seismicBox.innerHTML = `
-        <i class="mdi mdi-pulse comparison-icon"></i>
-        <div>
-          ${mainText}
-          ${eventLine}
-        </div>
-      `;
-      seismicBox.classList.add('visible');
-    }
-  }
-
-  // Wind comparison — show the comparison sentence and the nearest hurricane with wind speeds
-  if (comparisons.wind || comparisons.wind_event) {
-    const windBox = document.getElementById('windComparison');
-    const mainText = comparisons.wind ? `<div class="comparison-text">${comparisons.wind}</div>` : '';
-    let eventLine = '';
-    if (comparisons.wind_event && comparisons.wind_event.formatted) {
-      eventLine = `<div style="margin-top:6px;font-size:0.95rem;color:var(--text-primary);opacity:0.95"><strong>Comparable storm:</strong> ${comparisons.wind_event.formatted}</div>`;
-    }
-    if (windBox) {
-      windBox.innerHTML = `
-        <i class="mdi mdi-weather-windy-variant comparison-icon"></i>
-        <div>
-          ${mainText}
-          ${eventLine}
-        </div>
-      `;
-      windBox.classList.add('visible');
-    }
-  }
-}
-
-// Add this helper function at the top of the script or near handleSubmit
+/**
+ * Creates a formatted HTML item for the main impact overview section.
+ * @param {string} label - The label for the data point (e.g., "Impact Energy").
+ * @param {string|number} value - The value to display.
+ * @param {string} [unit=''] - The unit for the value (e.g., "km", "MT").
+ * @returns {string} An HTML string for the overview item.
+ */
 function createImpactOverviewItem(label, value, unit = '') {
   let displayValue = "N/A";
   if (value !== null && typeof value !== 'undefined') {
     if (typeof value === 'number') {
-      // Check if the number is very large (likely Joules) or very small for exponential
+      // Use exponential notation for very large or very small numbers for readability.
       if (Math.abs(value) > 1e6 || (Math.abs(value) < 1e-2 && Math.abs(value) !== 0)) {
         displayValue = value.toExponential(2);
       } else if (unit === "km/s" || unit === "km" || unit === "MT") {
-        displayValue = value.toFixed(2);
+        displayValue = value.toFixed(2); // Use 2 decimal places for these units.
       } else if (unit === "m") {
-        displayValue = value.toFixed(0);
-      } else { // Default numeric formatting
-        displayValue = parseFloat(value.toFixed(3)).toString(); // Handles cases like 0.000
+        displayValue = value.toFixed(0); // No decimals for meters.
+      } else { // Default numeric formatting.
+        displayValue = parseFloat(value.toFixed(3)).toString();
       }
     } else {
       displayValue = value.toString();
     }
-    displayValue += ` ${unit}`;
+    displayValue += ` ${unit}`; // Append the unit.
   }
 
   return `
@@ -712,16 +673,21 @@ function createImpactOverviewItem(label, value, unit = '') {
   `;
 }
 
+/**
+ * Handles the form submission for the impact simulation.
+ * @param {Event} e - The form submission event.
+ */
 async function handleSubmit(e) {
-  e.preventDefault();
+  e.preventDefault(); // Prevent the default form submission behavior.
   const loadingOverlay = document.querySelector(".loading-overlay");
   const resultsContainer = document.getElementById("resultsContainer");
   
   try {
+    // Show the loading overlay and hide the previous results.
     loadingOverlay.style.display = "flex";
     resultsContainer.classList.add("d-none");
     
-    // Array of interesting asteroid impact facts
+    // An array of interesting facts about asteroid impacts to display during loading.
     const impactFacts = [
       "The Chicxulub impact that killed the dinosaurs released 100 trillion tons of TNT equivalent—over a billion times the energy of the Hiroshima bomb.",
       "The Tunguska event in 1908 was caused by a ~50-60 m object that air-burst over Siberia, flattening about 2,150 km² of forest and felling 80 million trees.",
@@ -745,11 +711,11 @@ async function handleSubmit(e) {
       "Approximately 25 million meteoroids enter Earth's atmosphere each day, ranging from dust-sized particles to occasional boulder-sized objects."
     ];
     
-    // Shuffle the array to get a random order
+    // Shuffle the facts array to present them in a random order.
     const shuffledFacts = [...impactFacts].sort(() => 0.5 - Math.random());
     let currentFactIndex = 0;
     
-    // Create timeline container with initial fact
+    // Dynamically create the loading timeline UI inside the overlay.
     loadingOverlay.innerHTML = `
       <div class="impact-timeline">
         <div class="timeline-progress"></div>
@@ -780,45 +746,39 @@ async function handleSubmit(e) {
       </div>
     `;
     
-    // Set up fact rotation
+    // Set up an interval to rotate the displayed fact every 12 seconds.
     const factRotationInterval = setInterval(() => {
       currentFactIndex = (currentFactIndex + 1) % shuffledFacts.length;
       const factContainer = document.getElementById('factContainer');
       if (factContainer) {
-        // Add fade-out animation
-        factContainer.classList.add('fact-fade');
-        
-        // Change the text after fade-out and remove the class to fade in
-        setTimeout(() => {
-          factContainer.querySelector('.fact-text').textContent = shuffledFacts[currentFactIndex];
-          factContainer.classList.remove('fact-fade');
-        }, 500);
+        factContainer.querySelector('.fact-text').textContent = shuffledFacts[currentFactIndex];
       } else {
-        // If container no longer exists (loading complete), clear the interval
+        // If the container is gone, stop the interval.
         clearInterval(factRotationInterval);
       }
-    }, 12000); // Change fact every 12 seconds
+    }, 12000);
     
-    // Simulate progress through timeline steps with updated text
+    // Animate the timeline steps to give the user a sense of progress.
     animateTimelineStep('entry', 'Calculating entry velocity and atmospheric effects...', 2500);
     
     setTimeout(() => {
-      animateTimelineStep('impact', 'Simulating seismic, airblast, thermal and ejecta effects...', 3000);
+      animateTimelineStep('impact', 'Modeling thermal, seismic, and airblast waves...', 3000);
     }, 3000);
     
     setTimeout(() => {
-      animateTimelineStep('zones', 'Calculating vulnerability zones...', 3000);
+      animateTimelineStep('zones', 'Assessing hazard radii and vulnerability...', 3500);
     }, 6500);
     
     setTimeout(() => {
-      animateTimelineStep('population', 'Estimating casualties...', 3000);
+      animateTimelineStep('population', 'Estimating population exposure...', 4000);
     }, 10000);
     
-    // Make the actual API call
+    // Make the actual API call to the backend for simulation.
     const response = await fetch("/simulate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        // Read values from the form, parsing them as floats.
         diameter: parseFloat(document.getElementById("diameter").value),
         density: parseFloat(document.getElementById("density").value),
         velocity: parseFloat(document.getElementById("velocity").value),
@@ -829,18 +789,22 @@ async function handleSubmit(e) {
       }),
     });
 
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    // Check if the server response is not OK (e.g., status 400 or 500).
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'An unknown server error occurred.' }));
+      throw new Error(errorData.error || `Server responded with status ${response.status}`);
+    }
 
     const data = await response.json();
     
-    // Store the full results data as a JSON string in a data attribute
+    // Store the full JSON results in a data attribute on the results container
+    // for later use (e.g., by the showZones function).
     resultsContainer.dataset.lastResults = JSON.stringify(data.results_data);
-
-    // removed: populateComparisonBoxes(data.results_data.comparisons)
+    
     // ---- START: New Impact Overview Population Logic ----
+    // This section populates the main "Impact Overview" panel with key results.
     const impactOverviewContainer = document.getElementById("impactOverviewContent");
-    impactOverviewContainer.innerHTML = ''; // Clear previous content
-
+    impactOverviewContainer.innerHTML = ''; // Clear previous overview content.
     const eventType = data.results_data.atmospheric_entry.event_type;
     const atmEntry = data.results_data.atmospheric_entry;
     const energyData = data.results_data.energy;
@@ -905,7 +869,7 @@ async function handleSubmit(e) {
 
     const sections = parseResultsText(data.results_text);
     populateTab("overpressureEffects", sections.airblast || []); 
-    populateTab("thermalEffects", sections.seismic_effects || []);
+    populateTab("thermalEffects", sections.thermal_radiation || []);
     populateTab("seismicEffects", sections.seismic_effects || []);
     populateTab("ejectaEffects", sections.ejecta || []);
     populateTab("windEffects", sections.wind_effects || []);

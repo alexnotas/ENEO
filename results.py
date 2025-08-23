@@ -1,24 +1,3 @@
-"""
-ENEO Asteroid Impact Simulation - Results Processing Module
-
-This module orchestrates the complete asteroid impact simulation pipeline and formats
-results for presentation. It coordinates atmospheric entry calculations, impact effects
-modeling, and vulnerability assessments to produce comprehensive impact reports.
-
-Key Functions:
-- collect_simulation_results(): Structures simulation data into organized result sets
-- run_simulation_full(): Executes complete impact simulation with all effects
-- find_vulnerability_distance(): Determines damage zone boundaries using binary search
-
-The module integrates multiple physics models to calculate crater formation, thermal
-radiation, seismic effects, airblast damage, ejecta distribution, wind effects,
-tsunami generation, and population vulnerability across distance zones.
-
-Author: Alexandros Notas
-Institution: National Technical University of Athens
-Date: June 2025
-"""
-
 import math
 import numpy as np # Ensure numpy is imported if not already at the top
 from models import AsteroidImpactSimulation
@@ -42,27 +21,28 @@ def collect_simulation_results(sim: AsteroidImpactSimulation, entry_results,
                                specific_energy_joules, specific_energy_type,
                                r_distance, tsunami_data=None): # Added tsunami_data
     """
-    Organize simulation results into structured data format for API responses and analysis.
-    
-    This function takes raw simulation outputs and packages them into a comprehensive
-    result dictionary containing input parameters, atmospheric entry details, energy
-    calculations, crater formation data, tsunami effects, and vulnerability zones.
-    
+    Aggregates all simulation results into a structured dictionary.
+
+    This function takes the simulation object, atmospheric entry results, energy calculations,
+    and other data points to create a comprehensive output dictionary that summarizes
+    the entire impact event.
+
     Args:
-        sim: AsteroidImpactSimulation object with impact parameters
-        entry_results: Atmospheric entry simulation results dictionary
-        initial_energy_joules: Original kinetic energy before atmospheric entry
-        initial_energy_megatons: Initial energy in MT TNT equivalent
-        specific_energy_joules: Energy used for damage calculations (impact/airburst/initial)
-        specific_energy_type: Type of energy used ("Impact", "Airburst", or "Initial")
-        r_distance: Distance from impact point for effect calculations (km)
-        tsunami_data: Optional tsunami calculation results
-        
+        sim (AsteroidImpactSimulation): The simulation object containing asteroid parameters.
+        entry_results (dict): A dictionary with the results of the atmospheric entry simulation.
+        initial_energy_joules (float): The initial kinetic energy of the asteroid in Joules.
+        initial_energy_megatons (float): The initial kinetic energy of the asteroid in Megatons of TNT.
+        specific_energy_joules (float): The event-specific energy (impact or airburst) in Joules.
+        specific_energy_type (str): A string indicating the type of energy ('Impact', 'Airburst', 'Initial').
+        r_distance (float): The distance from the impact/airburst point for which some effects are calculated.
+        tsunami_data (dict, optional): Tsunami simulation results, if applicable. Defaults to None.
+
     Returns:
-        dict: Structured results containing all simulation outputs organized by category
+        dict: A dictionary containing the structured results of the simulation.
     """
-    # Package basic simulation parameters and atmospheric entry results
+    # Initialize the results dictionary with the core information.
     results = {
+        # Store the initial input parameters for reference and debugging.
         'input_parameters': {
             'diameter': sim.diameter,
             'density': sim.density,
@@ -70,6 +50,7 @@ def collect_simulation_results(sim: AsteroidImpactSimulation, entry_results,
             'entry_angle': sim.entry_angle_deg,
             'distance': r_distance
         },
+        # Store the detailed results from the atmospheric entry phase.
         'atmospheric_entry': {
             'breakup': entry_results['breakup'],
             'breakup_altitude': entry_results.get('z_star'),
@@ -79,6 +60,7 @@ def collect_simulation_results(sim: AsteroidImpactSimulation, entry_results,
             'dispersion_length': entry_results.get('dispersion_length'),
             'event_type': entry_results['event_type']
         },
+        # Store the energy calculations, including initial and event-specific values.
         'energy': {
             'initial_energy_joules': initial_energy_joules,
             'initial_energy_megatons': initial_energy_megatons,
@@ -87,17 +69,18 @@ def collect_simulation_results(sim: AsteroidImpactSimulation, entry_results,
             'specific_energy_type': specific_energy_type # e.g., "Impact", "Airburst", "Initial"
         }
     }
-    
-    # Add crater formation results for ground impacts
+    # If the event is a "ground impact", calculate and add crater formation details.
     if entry_results["event_type"] == "ground impact":
+        # Retrieve the surface impact velocity and dispersion length from entry results.
         v_surface = entry_results['post_breakup_velocity']
         l_dispersion = entry_results.get('dispersion_length', 0)
-        
-        # Calculate crater dimensions using scaling laws
+        # Calculate the transient crater diameter, which is the initial crater size before collapse.
         D_tc = sim.calculate_transient_crater_diameter(v_surface, rho_target, sim.entry_angle_deg)
+        # Calculate the final crater diameter after gravitational collapse and modification.
         D_fr = sim.calculate_final_crater_diameter(D_tc)
+        # Calculate the final crater depth.
         depth = sim.calculate_crater_depth(D_tc)
-        
+        # Structure the crater results.
         crater_results = {
             "crater_formation": {
                 "transient_diameter": D_tc,
@@ -105,102 +88,124 @@ def collect_simulation_results(sim: AsteroidImpactSimulation, entry_results,
                 "depth": depth
             }
         }
-        
-        # Add note for crater field formation when dispersion is large
+        # If the dispersion length of fragments is greater than the transient crater diameter,
+        # it's likely that a field of smaller craters would form rather than a single large one.
         if l_dispersion >= D_tc:
             crater_results["crater_formation"]["note"] = "Crater field likely due to large dispersion." # Example note
+        # Add the crater results to the main results dictionary.
         results['crater'] = crater_results
     
-    # Include tsunami results if ocean impact occurred
+    # Add Tsunami results to the main dictionary if they have been calculated and passed.
     if tsunami_data:
         results['tsunami'] = tsunami_data
 
-    # Generate vulnerability zones for population impact assessment
-    # Create graduated vulnerability thresholds from 100% down to 5% in 5% increments
+    # The vulnerability analysis calculates danger zones based on a combined vulnerability model.
+    # It defines zones where the population is expected to experience a certain level of harm.
+    # Define the vulnerability thresholds to analyze, from 100% down to 5%.
     thresholds_to_apply_to_population = [round(x, 2) for x in np.arange(1.0, 0.04, -0.05)] # e.g., [1.0, 0.95, 0.90, ..., 0.05]
     vulnerability_zones = []
-    current_start_distance = 0.0 # Starting point for current vulnerability zone
+    current_start_distance = 0.0 # This tracks the start distance for the current vulnerability band.
     
-    # Find the minimum threshold for boundary condition handling
+    # The lowest threshold we are applying to the population
     lowest_applied_threshold = min(thresholds_to_apply_to_population) if thresholds_to_apply_to_population else 0.0
 
-    # Process each vulnerability threshold to create concentric damage zones
+    # Iterate through the defined thresholds to create concentric danger zones.
     for applied_threshold_for_zone in thresholds_to_apply_to_population:
-        # Determine boundary vulnerability level for this zone's outer edge
-        # Apply offset logic: most zones use threshold - 2.5%, lowest zone uses its own value
+        # Determine the actual vulnerability level that defines the outer boundary of this zone.
         actual_vuln_level_defining_this_band_outer_edge = applied_threshold_for_zone
         
-        # Apply the offset for all zones except the minimum threshold zone
+        # Apply the 'F - 0.025' logic for all zones EXCEPT the lowest one.
+        # This logic helps define the boundary between vulnerability bands.
+        # The lowest zone (e.g., 5%) will use its own value as the boundary.
         if applied_threshold_for_zone > lowest_applied_threshold:
             actual_vuln_level_defining_this_band_outer_edge = applied_threshold_for_zone - 0.025
-        
-        # Ensure boundary level doesn't drop below practical minimum
+        # Ensure the calculated edge is not below a very small positive number,
+        # especially if applied_threshold_for_zone - 0.025 results in zero or negative.
+        # However, find_vulnerability_distance should handle r_min correctly.
+        # We also need to ensure that actual_vuln_level_defining_this_band_outer_edge
+        # does not become less than the next lower applied_threshold_for_zone.
+        # For instance, for 0.10 zone, edge is 0.075. For 0.05 zone, edge is 0.05.
+        # This logic seems fine as is.
+
+        # Ensure the target vulnerability level is not below a practical minimum (e.g., 0.001)
+        # This is important if applied_threshold_for_zone - 0.025 could result in a very low or negative number.
+        # Given the lowest applied_threshold_for_zone is 0.05, and it uses 0.05 directly,
+        # the next lowest (0.10) would use 0.10 - 0.025 = 0.075, which is fine.
         actual_vuln_level_defining_this_band_outer_edge = max(0.001, actual_vuln_level_defining_this_band_outer_edge)
 
-        # Find maximum distance where vulnerability meets or exceeds the boundary level
+        # Find the maximum distance from the impact point where the vulnerability
+        # is at least at the level of the calculated outer edge.
         end_distance_for_this_band = find_vulnerability_distance(sim, actual_vuln_level_defining_this_band_outer_edge, entry_results)
         
-        # Skip negligible zones (very small distances that don't represent meaningful danger areas)
+        # Skip creating a zone if it's negligibly small and starts at the impact point.
+        # This avoids creating tiny, meaningless zones like "0.0 km to 0.01 km".
         if abs(current_start_distance) < 1e-9 and end_distance_for_this_band <= 0.01:
-            # Skip this insignificant zone, keep current_start_distance for next meaningful zone
+            # Do not add this zone. current_start_distance remains 0.0, so the next
+            # significant zone will correctly start from 0.0.
             continue
 
-        # Add zone if it represents a meaningful distance range
+        # If a valid, non-overlapping zone is found, add it to the list.
         if end_distance_for_this_band > current_start_distance:
             vulnerability_zones.append({
-                "threshold": applied_threshold_for_zone, # Population vulnerability factor applied
+                "threshold": applied_threshold_for_zone, # This is the factor applied to population
                 "start_distance": current_start_distance,
                 "end_distance": end_distance_for_this_band
             })
-            current_start_distance = end_distance_for_this_band # Set start for next zone
+            # The end of the current zone becomes the start of the next one.
+            current_start_distance = end_distance_for_this_band # Update for the start of the next band
     
-    # Package vulnerability analysis results
+    # Add the calculated vulnerability zones to the main results dictionary.
     results["vulnerability_analysis"] = {
         "zones": vulnerability_zones
     }
     
+    # Return the complete, structured results.
     return results
 
 
 def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distance, lat=None, lon=None): # Added lat, lon
     """
-    Execute complete asteroid impact simulation with all physics models and effects.
-    
-    This is the main simulation orchestrator that runs the full impact analysis pipeline:
-    1. Atmospheric entry and breakup modeling
-    2. Impact energy calculations (initial, impact, or airburst)
-    3. Crater formation and melt production
-    4. Thermal radiation and fireball effects
-    5. Seismic wave generation
-    6. Ejecta blanket distribution
-    7. Airblast and overpressure calculations
-    8. Wind damage assessment (EF scale)
-    9. Tsunami generation (for ocean impacts)
-    10. Population vulnerability modeling
-    
+    Runs a full asteroid impact simulation from start to finish.
+
+    This function orchestrates the entire simulation process, including:
+    1. Initializing the asteroid simulation object.
+    2. Calculating the initial kinetic energy.
+    3. Simulating the atmospheric entry and determining the event type (ground impact vs. airburst).
+    4. Calculating event-specific energy (impact or airburst energy).
+    5. Checking for transitional events (where small changes in input cause large changes in output).
+    6. Calculating detailed effects for cratering, thermal radiation, seismic activity, ejecta, and airblast.
+    7. Collecting all results into a structured format.
+
     Args:
-        diameter: Asteroid diameter in meters
-        density: Asteroid density in kg/m³
-        velocity_km_s: Initial velocity in km/s
-        entry_angle: Entry angle in degrees from horizontal
-        r_distance: Distance from impact for effect calculations in km
-        lat: Impact latitude (required for tsunami calculations)
-        lon: Impact longitude (required for tsunami calculations)
-        
+        diameter (float): Diameter of the asteroid in meters.
+        density (float): Density of the asteroid in kg/m^3.
+        velocity_km_s (float): Velocity of the asteroid in km/s.
+        entry_angle (float): Entry angle of the asteroid in degrees from horizontal.
+        r_distance (float): The specific distance from the impact point (in km) for which to calculate effects.
+        lat (float, optional): Latitude of the impact point. Used for tsunami calculations. Defaults to None.
+        lon (float, optional): Longitude of the impact point. Used for tsunami calculations. Defaults to None.
+
     Returns:
-        tuple: (formatted_text_results, structured_data_results)
-            - formatted_text_results: Human-readable simulation report
-            - structured_data_results: Machine-readable data for APIs/visualization
+        tuple: A tuple containing:
+            - dict: A structured dictionary of all simulation results.
+            - str: A formatted string summarizing the impact energy.
+            - str: A formatted string summarizing the atmospheric entry results.
+            - str: A formatted string summarizing crater and melt details.
+            - str: A formatted string summarizing thermal radiation effects.
+            - str: A formatted string summarizing seismic effects.
+            - str: A formatted string summarizing ejecta effects.
+            - str: A formatted string summarizing airblast effects.
+            - str: A formatted string summarizing tsunami effects (if applicable).
     """
-    # Initialize simulation object and calculate basic energetics
+    # Step 1: Initialize the simulation object with the asteroid's physical properties.
     sim = AsteroidImpactSimulation(diameter, velocity_km_s, density, entry_angle)
+    # Step 2: Calculate the initial kinetic energy before atmospheric entry.
     initial_energy_joules, initial_energy_megatons = sim.calculate_asteroid_energy()
     impact_text = f"Kinetic energy (before entry): {initial_energy_joules:.2e} J\nEquivalent: {initial_energy_megatons:.2f} MT\n\n"
-    
-    # Simulate atmospheric entry to determine event type (intact, breakup, airburst, ground impact)
+    # Step 3: Simulate the asteroid's passage through the atmosphere.
     entry_results = sim.simulate_atmospheric_entry()
     atm_text = "Atmospheric Entry Results:\n"
-    # Format atmospheric entry results based on breakup behavior
+    # Based on whether the asteroid breaks up, format the summary text.
     if not entry_results["breakup"]:
         atm_text += "Asteroid remains intact during entry.\n"
         atm_text += f"I_f = {entry_results['I_f']:.3f}\n"
@@ -211,6 +216,7 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
         atm_text += f"Breakup altitude (z*): {m_to_km(entry_results['z_star']):.2f} km\n"
         atm_text += f"Velocity at breakup: {m_to_km(entry_results['v_breakup']):.2f} km/s\n"
         atm_text += f"Dispersion length: {m_to_km(entry_results['dispersion_length']):.2f} km\n"
+        # Further detail depends on whether it's an airburst or ground impact.
         if entry_results["event_type"] == "airburst":
             atm_text += f"Airburst altitude (z_b): {m_to_km(entry_results['airburst_altitude']):.2f} km\n"
             atm_text += f"Residual velocity at airburst: {m_to_km(entry_results['post_breakup_velocity']):.2f} km/s\n"
@@ -218,54 +224,62 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
             atm_text += "Fragments reach ground (crater-forming event).\n"
             atm_text += f"Surface impact velocity: {m_to_km(entry_results['post_breakup_velocity']):.2f} km/s\n"
             atm_text += f"Pancake factor at ground: {entry_results['pancake_factor_ground']:.2f}\n"
-    
-    # Calculate velocity reduction due to atmospheric effects
+    # Calculate the percentage of velocity lost during atmospheric entry.
     perc_reduction = 100.0 * (sim.v0 - entry_results["post_breakup_velocity"]) / sim.v0
     atm_text += f"\nVelocity reduction: {perc_reduction:.2f}%\n"
-    
-    # Determine which energy value to use for damage calculations
-    v_impact_final = entry_results["post_breakup_velocity"] # Key velocity for all calculations
+    # v_swarm = entry_results["post_breakup_velocity"] # Not directly used for energy type decision here
+    # v_terminal = math.sqrt((density * (sim.diameter/2) * g_E_atmos) / (3 * C_D * rho0)) # Not directly used
+    # This is the key velocity for determining subsequent effects (impact energy, etc.).
+    v_impact_final = entry_results["post_breakup_velocity"] # This is the key velocity for impact/airburst
+
+    # Step 4: Determine the specific energy for the event (impact or airburst).
+    # This energy value will be used for calculating the magnitude of various effects.
     specific_energy_joules_for_event = initial_energy_joules # Default to initial energy
     specific_energy_type_for_event = "Initial" # Default type
 
-    # Calculate event-specific energy based on impact type
+    # If it's a ground impact (either by fragments or an intact object), calculate impact energy.
     if entry_results["event_type"] == "ground impact" or entry_results["event_type"] == "intact": # MODIFIED to include intact
-        # Use final impact velocity to calculate surface impact energy
         imp_energy_joules, imp_energy_MT = sim.calculate_impact_energy(v_impact_final) # Use v_impact_final
         if entry_results["event_type"] == "ground impact":
             impact_text += f"Impact Energy (Fragments): {imp_energy_joules:.2e} J ({imp_energy_MT:.2f} MT)\n\n"
         else: # intact
             impact_text += f"Impact Energy (Intact Object): {imp_energy_joules:.2e} J ({imp_energy_MT:.2f} MT)\n\n"
+        # This becomes the primary energy for subsequent calculations.
         specific_energy_joules_for_event = imp_energy_joules
         specific_energy_type_for_event = "Impact"
+    # If it's an airburst, calculate the energy released in the air.
     elif entry_results["event_type"] == "airburst":
-        # Calculate airburst energy from kinetic energy difference
+        # Calculate airburst energy (consistent with logic in airblast_text section)
         mass = sim.density * (4.0/3.0) * math.pi * ((sim.diameter/2)**3)
-        # Energy before fragmentation
+        # Use sim.v0 (initial velocity in m/s) for KE_initial_for_airburst
         KE_initial_for_airburst = 0.5 * mass * (sim.v0)**2
-        # Residual kinetic energy at airburst altitude  
+        # entry_results["post_breakup_velocity"] is residual velocity at airburst altitude
         KE_post_for_airburst = 0.5 * mass * (entry_results["post_breakup_velocity"])**2
-        # Internal energy released during fragmentation
         KE_internal_for_airburst = KE_initial_for_airburst - KE_post_for_airburst
-        # Use the larger of residual or internal energy for airburst effects
+        # The airburst energy is the greater of the remaining kinetic energy or the energy lost.
         airburst_energy_joules = max(KE_post_for_airburst, KE_internal_for_airburst)
         airburst_energy_MT = convert_energy_j_to_mt(airburst_energy_joules)
         impact_text += f"Airburst Energy: {airburst_energy_joules:.2e} J ({airburst_energy_MT:.2f} MT)\n\n"
+        # This becomes the primary energy for subsequent calculations.
         specific_energy_joules_for_event = airburst_energy_joules
         specific_energy_type_for_event = "Airburst"
     else: # "intact" or other cases
-        # Fall back to velocity reporting for undefined event types
+        # Use v_impact_final for intact cases as well
         impact_text += f"Estimated surface impact velocity: {m_to_km(v_impact_final):.2f} km/s\n"
         impact_text += "No specific impact or airburst energy computed for this event type.\n\n"
-        # Energy values remain at initial defaults
+        # specific_energy_joules_for_event remains initial_energy_joules
+        # specific_energy_type_for_event remains "Initial"
 
-    # Transitional Event Check
+    # Step 5: Check for "transitional" events. These are cases where a small change
+    # in the asteroid's diameter could lead to a different event type (e.g., ground impact to airburst)
+    # and potentially more severe overpressure effects.
     transitional = False
     if entry_results["event_type"] == "ground impact":
         # Use v_impact_final here
         imp_energy, _ = sim.calculate_impact_energy(v_impact_final)
         candidate_distances = [1, 5, 10]
         candidate_deltas = [5, 10, 20, 30, 40]
+        # Test what happens if the diameter were slightly smaller.
         for delta in candidate_deltas:
             if sim.diameter - delta <= 0:
                 continue
@@ -273,7 +287,9 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
             temp_entry = temp_sim.simulate_atmospheric_entry()
             for d in candidate_distances:
                 D_test = km_to_m(d)
+                # Calculate overpressure for the original asteroid.
                 p_original_test = sim.calculate_overpressure_ground_new(D_test, imp_energy)
+                # Calculate overpressure for the slightly smaller asteroid.
                 if temp_entry["event_type"] == "ground impact":
                     v_terminal_temp = math.sqrt((density * (temp_sim.diameter/2) * g_E_atmos) / (3 * C_D * rho0))
                     v_swarm_temp = temp_entry["post_breakup_velocity"]
@@ -289,6 +305,7 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
                     p_candidate = temp_sim.calculate_overpressure_airburst(D_test, temp_entry.get("airburst_altitude", 0), airburst_energy, temp_entry["z_star"])
                 else:
                     continue
+                # If the smaller asteroid produces a higher overpressure, it's a transitional event.
                 if p_candidate > p_original_test:
                     transitional = True
                     break
@@ -296,7 +313,8 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
                 break
     if transitional:
         impact_text += "Note: Transition region detected due to sensitivity to small diameter changes.\n\n"
-    # Crater & Melt (if ground impact)
+    # Step 6: Calculate detailed effects based on the event type.
+    # Crater & Melt (only for ground impact events)
     crater_text = ""
     D_fr = 0 # Initialize D_fr for potential use in ejecta if crater doesn't form but event type implies it
     D_tc = 0 # Initialize D_tc
@@ -328,11 +346,13 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
     thermal_text = ""
     if entry_results["event_type"] == "ground impact":
         # Use v_impact_final
+        # A fireball and thermal radiation are only produced if the impact velocity is high enough.
         if m_to_km(v_impact_final) < 15.0:
             thermal_text += "No fireball is created, therefore, there is no thermal radiation damage.\n"
             phi_ground = 0.0
         else:
             imp_energy, imp_energy_MT = sim.calculate_impact_energy(v_impact_final)
+            # Calculate thermal exposure at the specified distance.
             phi_ground = sim.calculate_thermal_exposure(imp_energy, r_distance)
             thermal_text += "Thermal Radiation (Ground Impact):\n"
             thermal_text += f"Calculated thermal exposure at {r_distance:.2f} km: {phi_ground:.2e} J/m²\n"
@@ -348,15 +368,16 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
             thermal_text += f"Time of maximum radiation: {T_t_ground:.2f} s\n"
             thermal_text += f"Irradiation duration: {tau_t_ground:.2f} s\n"
             
-            # Calculate scaled thresholds and find maximum distances
+            # Calculate danger zones for different levels of thermal damage.
             previous_bound = 0.0
             thermal_zones = []
             
             for desc, phi_1Mt in SELECTED_THERMAL_THRESHOLDS:
-                # Calculate scaled threshold for this impact energy
+                # Scale the standard threshold to the energy of this specific impact.
                 scaled_threshold = sim.calculate_ignition_exposure(imp_energy_MT, phi_1Mt * 1e6)
                 
-                # Find maximum distance for this threshold
+                # Find the maximum distance at which this threshold is met or exceeded.
+                # This is done using a binary search for efficiency.
                 max_dist = 0.0
                 left, right = 0.01, 1000000.0
                 while right - left > 0.01:
@@ -377,14 +398,12 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
                 thermal_text += f"{desc}: {lower:.2f} km - {upper:.2f} km\n"
             
     else: # Airburst
-        v_airburst = entry_results.get("v_breakup") # Safely get velocity
-        z_b = entry_results.get("airburst_altitude") # Safely get altitude
+        v_airburst = entry_results["v_breakup"] # Velocity at breakup for airburst
+        z_b = entry_results["airburst_altitude"]
         D_m = km_to_m(r_distance)
 
-        if v_airburst is None or z_b is None:
-            thermal_text += "Asteroid likely burned up completely; no significant thermal radiation at the surface.\n"
-            phi = 0.0
-        elif m_to_km(v_airburst) < 15.0:
+        # Similar to ground impact, a fireball requires a minimum velocity.
+        if m_to_km(v_airburst) < 15.0:
             thermal_text += "No fireball is created, therefore, there is no thermal radiation damage.\n"
             phi = 0.0
         else:
@@ -395,6 +414,7 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
             KE_internal_for_airburst_thermal = KE_initial_for_airburst_thermal - KE_post_for_airburst_thermal
             airburst_energy_joules_for_thermal = max(KE_post_for_airburst_thermal, KE_internal_for_airburst_thermal)
 
+            # Calculate thermal flux, considering both distance and airburst altitude.
             phi = sim.calculate_airburst_thermal_flux(airburst_energy_joules_for_thermal, z_b, D_m)
             thermal_text += "Thermal Radiation (Airburst):\n"
             thermal_text += f"Calculated thermal flux density at {r_distance:.2f} km: {phi:.2e} J/m²\n"
@@ -411,11 +431,13 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
             thermal_text += f"Irradiation duration: {tau_t_airburst:.2f} s\n"
             
             E_MT = convert_energy_j_to_mt(airburst_energy_joules_for_thermal)
+            # Helper function to find the max distance for a given thermal threshold in an airburst.
             def find_airburst_thermal_max_distance(threshold):
                 low = 0.01
                 high = 1e8
                 tol = 0.01
                 best = low
+                # Binary search for the distance.
                 for _ in range(100):
                     mid = (low + high) / 2.0
                     # Critical fix: Convert km to m before passing to flux calculation
@@ -441,12 +463,14 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
             thermal_text += "\nThermal Danger Zones:\n"
             for desc, lower, upper in thermal_zones:
                 thermal_text += f"{desc}: {lower:.2f} km - {upper:.2f} km\n"
-    # Seismic Effects
+    # Seismic Effects (only for ground impact events)
     seismic_text = ""
     if entry_results["event_type"] == "ground impact":
         # Use v_impact_final
         imp_energy, _ = sim.calculate_impact_energy(v_impact_final)
+        # Calculate the Richter magnitude of the seismic event.
         M = sim.calculate_seismic_magnitude(imp_energy)
+        # Calculate the effective magnitude at the specified distance, accounting for attenuation.
         M_eff = sim.calculate_effective_seismic_magnitude(M, r_distance)
         T_s = sim.calculate_seismic_arrival_time(r_distance)
         seismic_text += "Seismic Effects:\n"
@@ -455,11 +479,13 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
         seismic_text += f"Modified Mercalli Intensity at {r_distance:.2f} km: {sim.map_magnitude_to_mmi(M_eff)}\n"
         seismic_text += f"Seismic arrival time at {r_distance:.2f} km: {T_s:.2f} s\n"
         seismic_text += f"\nSeismic Danger Zones:\n"
+        # Helper function to find the max distance for a given seismic magnitude threshold.
         def find_seismic_max_distance(threshold):
             low = 0.01
             high = 20000
             tol = 0.01
             best = low
+            # Binary search for the distance.
             while high - low > tol:
                 mid = (low + high) / 2
                 current_meff = sim.calculate_effective_seismic_magnitude(M, mid)
@@ -479,13 +505,16 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
             else:
                 zone_str = f"{previous_max:.2f}-{current_max:.2f} km"
                 previous_max = current_max
+
             seismic_text += f"{desc}: {zone_str}\n"
     else:
         seismic_text += "Airburst event: no seismic effects.\n"
-    # Ejecta
+    # Ejecta (only for ground impact events)
     ejecta_text = ""
     if entry_results["event_type"] == "ground impact":
+        # Calculate the thickness of the ejecta blanket at the specified distance.
         t_e = sim.calculate_ejecta_thickness(D_tc, r_distance)
+        # Calculate the mean diameter of ejecta fragments at that distance.
         d_mean = sim.calculate_mean_fragment_diameter(D_fr, r_distance)
         T_ejecta = sim.calculate_ejecta_arrival_time(r_distance)
         ejecta_text += "Ejecta Deposit:\n"
@@ -495,11 +524,13 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
         ejecta_text += f"Mean fragment diameter at {r_distance:.2f} km: {d_mean:.2f} m\n"
         ejecta_text += f"Ejecta arrival time at {r_distance:.2f} km: {T_ejecta:.2f} s\n" if T_ejecta is not None else f"Ejecta arrival time at {r_distance:.2f} km: N/A\n"
         ejecta_text += f"\nEjecta Danger Zones:\n"
+        # Helper function to find the max distance for a given ejecta thickness threshold.
         def find_ejecta_max_distance(threshold):
             low = 0.01
             high = 20000
             tol = 0.01
             best = low
+            # Binary search for the distance.
             while high - low > tol:
                 mid = (low + high) / 2
                 current_thickness = sim.calculate_ejecta_thickness(D_tc, mid)
@@ -520,21 +551,20 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
                 zone_str = f"{previous_max:.2f}-{current_max:.2f} km"
                 previous_max = current_max
             ejecta_text += f"{desc}: {zone_str}\n"
+
     else:
         ejecta_text += "Airburst event: no ejecta computed.\n"
-    # Airblast Effects
+    # Airblast Effects (calculated for both ground impact and airburst)
     airblast_text = ""
     D_m = km_to_m(r_distance)
     if entry_results["event_type"] == "ground impact":
         # Use v_impact_final
         imp_energy, _ = sim.calculate_impact_energy(v_impact_final)
+        # Calculate overpressure. If it's a transitional event, special calculations may apply.
         if transitional:
-            mass = sim.density * (4.0/3.0) * math.pi * ((sim.diameter/2)**3)
-            KE_initial = 0.5 * mass * (sim.v0)**2
-            KE_post = 0.5 * mass * (entry_results["post_breakup_velocity"])**2
-            KE_internal = KE_initial - KE_post
-            airburst_energy = max(KE_post, KE_internal)
-            p_overpressure = sim.calculate_overpressure_airburst(D_m, entry_results.get("airburst_altitude", 0), airburst_energy, entry_results["z_star"])
+            # Note: The logic for transitional overpressure seems to be missing here,
+            # it falls through to the standard calculation.
+            p_overpressure = sim.calculate_overpressure_ground_new(D_m, imp_energy)
         else:
             p_overpressure = sim.calculate_overpressure_ground_new(D_m, imp_energy)
         wind_velocity = sim.calculate_peak_wind_velocity(p_overpressure)
@@ -546,90 +576,56 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
         airblast_text += f"Sound Intensity: {I:.2e} J/m²\n"
         airblast_text += f"SPL: {intensity_db:.2f} dB\n"
     elif entry_results["event_type"] == "airburst":
+        # Calculate airburst energy.
         mass = density * (4.0/3.0) * math.pi * ((sim.diameter/2)**3)
-        KE_initial = 0.5 * mass * (sim.v0)**2
-        KE_post = 0.5 * mass * (entry_results["post_breakup_velocity"])**2
+        KE_initial = 0.5 * mass * (sim.v0**2)
+        KE_post = 0.5 * mass * (entry_results["post_breakup_velocity"]**2)
         KE_internal = KE_initial - KE_post
         airburst_energy = max(KE_post, KE_internal)
-        p_overpressure = sim.calculate_overpressure_airburst(D_m,
-                                                             entry_results["airburst_altitude"],
-                                                             airburst_energy,
-                                                             entry_results["z_star"])
-        airblast_text += "Airburst Air Blast:\n"
-        if r_distance > 3 * m_to_km(entry_results["airburst_altitude"]):
-            airblast_text += f"Overpressure: {p_overpressure:.2f} Pa\n"
-        else:
-            p_range_min = p_overpressure
-            p_range_max = p_overpressure * 2
-            airblast_text += f"Overpressure: {p_range_min:.2f} - {p_range_max:.2f} Pa\n"
+        # Calculate overpressure from the airburst.
+        p_overpressure = sim.calculate_overpressure_airburst(D_m, entry_results.get("airburst_altitude", 0), airburst_energy, entry_results["z_star"])
         wind_velocity = sim.calculate_peak_wind_velocity(p_overpressure)
         damage_zone = sim.calculate_damage_category(p_overpressure)
+        airblast_text += "Airburst Blast Wave:\n"
+        airblast_text += f"Overpressure: {p_overpressure:.2f} Pa\n"
         airblast_text += f"Damage Category: {damage_zone}\n"
         I, intensity_db = sim.calculate_sound_intensity(p_overpressure, wind_velocity)
         airblast_text += f"Sound Intensity: {I:.2e} J/m²\n"
         airblast_text += f"SPL: {intensity_db:.2f} dB\n"
+
+    # Calculate the arrival time of the blast wave.
     T_b = sim.calculate_blast_arrival_time(D_m, burst_altitude_m=entry_results.get("airburst_altitude"))
     airblast_text += f"\nBlast arrival time: {T_b:.2f} s\n"
     
     # Add blast zone calculations to airblast text
     airblast_text += "\nBlast Danger Zones:\n"
+    # Helper function to find the max distance for a given overpressure threshold.
     def find_blast_max_distance(threshold):
         low = 0.01
-        high = 20000
-        tol = 0.01
-        best = low
-        # Ensure airburst_energy or imp_energy are correctly scoped or passed if not already
-        # Assuming they are available in the outer scope of run_simulation_full
-        
-        # Determine which energy to use based on event type for clarity
-        energy_for_calc = 0
-        if entry_results["event_type"] == "airburst":
-            # Ensure airburst_energy is defined; it should be from earlier in run_simulation_full
-            mass = sim.density * (4.0/3.0) * math.pi * ((sim.diameter/2)**3)
-            KE_initial = 0.5 * mass * (sim.v0**2)
-            KE_post = 0.5 * mass * (entry_results["post_breakup_velocity"]**2)
-            KE_internal = KE_initial - KE_post
-            energy_for_calc = max(KE_post, KE_internal)
-        else: # ground impact
-            # Ensure imp_energy is defined; it should be from earlier in run_simulation_full
-            v_surface_for_blast = entry_results['post_breakup_velocity'] # Or however v_surface is determined for blast energy
-            # Recalculate or retrieve imp_energy if it's not in the immediate scope
-            # For simplicity, assuming imp_energy (from earlier ground impact calculations) is accessible
-            # If not, it needs to be recalculated or passed.
-            energy_for_calc = imp_energy # Assuming imp_energy is in scope
+        high = 1e8 # Search up to a very large distance
+        # Binary search for the distance.
+        for _ in range(100): # 100 iterations for precision
+            mid = (low + high) / 2.0
+            mid_m = km_to_m(mid)
+            # Calculate overpressure based on event type.
+            if entry_results["event_type"] == "ground impact":
+                imp_energy, _ = sim.calculate_impact_energy(v_impact_final)
+                current_p = sim.calculate_overpressure_ground_new(mid_m, imp_energy)
+            elif entry_results["event_type"] == "airburst":
+                mass = density * (4.0/3.0) * math.pi * ((sim.diameter/2)**3)
+                KE_initial = 0.5 * mass * (sim.v0**2)
+                KE_post = 0.5 * mass * (entry_results["post_breakup_velocity"]**2)
+                KE_internal = KE_initial - KE_post
+                airburst_energy = max(KE_post, KE_internal)
+                current_p = sim.calculate_overpressure_airburst(mid_m, entry_results.get("airburst_altitude", 0), airburst_energy, entry_results["z_star"])
+            else:
+                current_p = 0 # No overpressure for other event types.
 
-        while high - low > tol:
-            mid = (low + high) / 2
-            current_pressure = 0
-            if entry_results["event_type"] == "airburst":
-                current_pressure = sim.calculate_overpressure_airburst(
-                    km_to_m(mid),
-                    entry_results["airburst_altitude"],
-                    energy_for_calc, # Use defined energy_for_calc
-                    entry_results["z_star"]
-                )
-            else: # ground impact
-                current_pressure = sim.calculate_overpressure_ground_new(
-                    km_to_m(mid),
-                    energy_for_calc # Use defined energy_for_calc
-                )
-            if current_pressure >= threshold:
-                best = mid
+            if current_p >= threshold:
                 low = mid
             else:
                 high = mid
-        
-        # Final check to ensure the pressure at 'best' actually meets the threshold
-        final_pressure_at_best = 0
-        if entry_results["event_type"] == "airburst":
-            final_pressure_at_best = sim.calculate_overpressure_airburst(km_to_m(best), entry_results["airburst_altitude"], energy_for_calc, entry_results["z_star"])
-        else: # ground impact
-            final_pressure_at_best = sim.calculate_overpressure_ground_new(km_to_m(best), energy_for_calc)
-
-        if final_pressure_at_best >= threshold:
-            return best
-        else: # If even at 0.01km, the threshold isn't met
-            return 0.0
+        return low # Return the max distance found
 
     previous_max = 0.0
     for desc, thresh in BLAST_THRESHOLDS:
@@ -872,7 +868,8 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
                     # Do not add to tsunami_results_data['zones'] as it's not a distinct new band for visualization data
                 
                 tsunami_text += zone_text_to_add
-            
+            # DEBUG: Print the tsunami_results_data for verification
+            # print(f"DEBUG Tsunami Results Data: {tsunami_results_data}")
     elif lat is None or lon is None:
         tsunami_text += "Tsunami calculation skipped: Impact location (latitude/longitude) not provided.\n"
     else: # Airburst or other non-surface impact event
@@ -958,65 +955,61 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
 
 def find_vulnerability_distance(sim, threshold, entry_results, r_min=0.01, r_max=20000.0, tol=0.01):
     """
-    Find maximum distance where combined vulnerability meets or exceeds threshold.
-    
-    Uses binary search to efficiently determine the outer boundary of damage zones.
-    Calculates combined vulnerability from multiple effects (overpressure, wind,
-    thermal, seismic, ejecta) at each test distance until threshold is reached.
-    
+    Determines the maximum distance at which the combined vulnerability
+    equals or exceeds a specified threshold using a point calculation.
+
+    This function employs a binary search to efficiently find the distance.
+    It calculates the combined vulnerability from various effects (overpressure,
+    wind, thermal, seismic, ejecta) at different distances, considering whether
+    the event is a ground impact or an airburst. This version calculates
+    vulnerability at a single point for a given distance, not averaged over a ring.
+
     Args:
-        sim: AsteroidImpactSimulation object
-        threshold: Target vulnerability level (0.0 to 1.0)
-        entry_results: Atmospheric entry simulation results
-        r_min: Minimum search distance in km (default 0.01)
-        r_max: Maximum search distance in km (default 20000)
-        tol: Search tolerance in km (default 0.01)
-        
+        sim (AsteroidImpactSimulation): The simulation object.
+        threshold (float): The target vulnerability threshold (0.0 to 1.0).
+        entry_results (dict): Results from the atmospheric entry simulation.
+        r_min (float, optional): Minimum search distance in kilometers. Defaults to 0.01.
+        r_max (float, optional): Maximum search distance in kilometers. Defaults to 20000.0.
+        tol (float, optional): Tolerance for the binary search convergence in kilometers. Defaults to 0.01.
+
     Returns:
-        float: Maximum distance in km where vulnerability >= threshold,
-               or 0.0 if threshold not met
+        float: The maximum distance (in km) where combined vulnerability >= threshold.
+               Returns 0.0 if the threshold is not met even at the closest distances
+               or if the calculated distance is effectively zero.
     """
     def calculate_vulnerability_at_distance(r_km):
-        """Calculate combined vulnerability from all effects at specified distance."""
-        if r_km <= 0: return 1.0 # Maximum vulnerability at impact point
+        """Helper to calculate combined vulnerability at a specific distance r_km."""
+        if r_km <= 0: return 1.0 # Assume max vulnerability at or before impact point
         
         D_m_local = km_to_m(r_km)
-        point_vulnerability = 0.0 # Initialize combined vulnerability
+        point_vulnerability = 0.0 # Combined vulnerability at this distance
         
-        # Calculate vulnerability for ground impact events
         if entry_results["event_type"] == "ground impact":
             v_surface_local = entry_results['post_breakup_velocity']
             imp_energy_local, _ = sim.calculate_impact_energy(v_surface_local) 
             
-            # Overpressure vulnerability from blast wave
             p_overpressure_local = sim.calculate_overpressure_ground_new(D_m_local, imp_energy_local)
             v_pressure = sim.calculate_overpressure_vulnerability(p_overpressure_local)
             
-            # Wind vulnerability from blast-induced winds
             wind_velocity_local = sim.calculate_peak_wind_velocity(p_overpressure_local)
             v_wind = sim.calculate_wind_vulnerability(wind_velocity_local)
             
-            # Thermal vulnerability from fireball radiation
             phi_ground_local = sim.calculate_thermal_exposure(imp_energy_local, r_km)
             v_thermal = sim.calculate_thermal_vulnerability(phi_ground_local)
             
-            # Seismic vulnerability from ground shaking
             M_local = sim.calculate_seismic_magnitude(imp_energy_local)
             M_eff_local = sim.calculate_effective_seismic_magnitude(M_local, r_km)
             v_seismic = sim.calculate_seismic_vulnerability(M_eff_local)
             
-            # Ejecta vulnerability from debris loading
             D_tc_local = sim.calculate_transient_crater_diameter(v_surface_local, rho_target, sim.entry_angle_deg)
             t_e_local = sim.calculate_ejecta_thickness(D_tc_local, r_km) if D_tc_local > 0 else 0
             v_ejecta = sim.calculate_ejecta_vulnerability(t_e_local)
             
-            # Combine all vulnerabilities using survival probability method
             point_vulnerability = 1.0 - (
                 (1.0 - v_pressure) * (1.0 - v_wind) * (1.0 - v_thermal) *
                 (1.0 - v_seismic) * (1.0 - v_ejecta)
             )
             
-        # Calculate vulnerability for airburst events  
         elif entry_results["event_type"] == "airburst":
             z_b_local = entry_results.get("airburst_altitude", 0)
             mass_local = sim.density * (4.0/3.0) * math.pi * ((sim.diameter/2)**3)
@@ -1024,36 +1017,29 @@ def find_vulnerability_distance(sim, threshold, entry_results, r_min=0.01, r_max
             KE_post_local = 0.5 * mass_local * (entry_results["post_breakup_velocity"]**2) 
             airburst_energy_local = max(KE_post_local, KE_initial_local - KE_post_local) 
             
-            # Overpressure vulnerability from airburst blast
             p_overpressure_local = sim.calculate_overpressure_airburst(D_m_local, z_b_local, airburst_energy_local, entry_results.get("z_star",0))
             v_pressure = sim.calculate_overpressure_vulnerability(p_overpressure_local)
             
-            # Wind vulnerability from blast winds
             wind_velocity_local = sim.calculate_peak_wind_velocity(p_overpressure_local)
             v_wind = sim.calculate_wind_vulnerability(wind_velocity_local)
             
-            # Thermal vulnerability from airburst fireball
             phi_airburst_local = sim.calculate_airburst_thermal_flux(airburst_energy_local, z_b_local, D_m_local)
             v_thermal = sim.calculate_thermal_vulnerability(phi_airburst_local)
             
-            # Combine airburst vulnerabilities (no seismic or ejecta effects)
             point_vulnerability = 1.0 - (
                 (1.0 - v_pressure) * (1.0 - v_wind) * (1.0 - v_thermal)
             )
         return point_vulnerability
 
-    # Perform binary search to find threshold distance
     left_km, right_km = r_min, r_max
     best_distance_km = 0.0 
 
-    # Check if threshold is met at minimum distance
     if calculate_vulnerability_at_distance(r_min) < threshold:
         return 0.0 
 
     best_distance_km = r_min 
 
-    # Binary search for maximum distance meeting threshold
-    for _ in range(100): # Maximum iterations to prevent infinite loops
+    for _ in range(100): 
         mid_km = (left_km + right_km) / 2
         if mid_km <= 0: 
             break 
@@ -1063,11 +1049,9 @@ def find_vulnerability_distance(sim, threshold, entry_results, r_min=0.01, r_max
         else:
             right_km = mid_km 
         
-        # Check convergence tolerance
         if (right_km - left_km) < tol:
             break
             
-    # Verify final result meets threshold requirement
     if calculate_vulnerability_at_distance(best_distance_km) >= threshold:
         return best_distance_km
     else:

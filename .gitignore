@@ -1,0 +1,5 @@
+venv/
+virtualenv/
+*.pyc
+__pycache__/
+maps/*.tif
