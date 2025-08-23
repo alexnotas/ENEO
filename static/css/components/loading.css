@@ -1,0 +1,156 @@
+/* Loading Overlay Styling */
+.loading-overlay {
+  /* Styles for the full-screen overlay shown during simulation processing. */
+  position: fixed; /* Covers the entire viewport. */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(30, 30, 30, 0.92); /* Dark, semi-transparent background. */
+  display: none; /* Hidden by default, shown via JavaScript. */
+  flex-direction: column; /* Arranges spinner and messages vertically. */
+  justify-content: center; /* Centers content vertically. */
+  align-items: center; /* Centers content horizontally. */
+  z-index: 9999; /* Ensures it's on top of all other content. */
+}
+
+/* Loading Spinner Animation */
+.loading-spinner {
+  /* Styles for the animated spinner. */
+  border: 8px solid #ff9e35; /* Spinner track color. */
+  border-top: 8px solid #ff6b35; /* Spinner moving part color. */
+  border-radius: 50%; /* Creates a circle. */
+  width: 70px;
+  height: 70px;
+  animation: spin 1.2s linear infinite; /* Applies the spin animation. */
+  margin-bottom: 2rem; /* Space below the spinner. */
+}
+
+@keyframes spin {
+  /* Defines the rotation animation for the spinner. */
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Loading Message Styling */
+.loading-message {
+  /* Styles for the primary message displayed during loading (e.g., "Running simulation..."). */
+  color: #fff;
+  font-size: 1.5rem;
+  font-family: "Orbitron", sans-serif; /* Uses the heading font. */
+  letter-spacing: 1px;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+/* Loading Tip Styling */
+.loading-tip {
+  /* Styles for the secondary/tip message displayed during loading. */
+  color: #ff9e35; /* Uses secondary accent color. */
+  font-size: 1rem;
+  text-align: center;
+  margin-top: 0.5rem;
+  opacity: 0.85; /* Slightly transparent. */
+  max-width: 500px; /* Limits width for better readability. */
+}
+
+/* Impact Timeline Styling (Visual representation of event progression) */
+.impact-timeline {
+  /* Container for the timeline steps. */
+  width: 80%;
+  max-width: 800px; /* Limits width for better layout. */
+  margin: 0 auto; /* Centers the timeline. */
+  position: relative; /* For positioning the progress bar. */
+  padding: 20px 0; /* Vertical padding. */
+}
+
+/* Timeline Progress Bar */
+.timeline-progress {
+  /* The line that visually connects timeline steps and indicates progress. */
+  position: absolute;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color)); /* Gradient fill. */
+  top: 50px; /* Vertical position (adjust based on icon size/position). */
+  left: 0;
+  width: 0; /* Initially no width, animated via JavaScript. */
+  transition: width 1s ease; /* Smooth animation for width change. */
+  z-index: 1; /* Behind the step icons. */
+}
+
+/* Individual Timeline Step */
+.timeline-step {
+  /* Styles for each step in the timeline. */
+  display: flex;
+  flex-direction: column; /* Arranges icon, label, and details vertically. */
+  align-items: center; /* Centers items horizontally. */
+  position: relative; /* For z-indexing if needed. */
+  margin-bottom: 40px; /* Space below each step (for vertical layout). */
+  opacity: 0.5; /* Inactive steps are semi-transparent. */
+  transition: all 0.5s ease; /* Smooth transition for active state. */
+}
+
+.timeline-step.active {
+  /* Styles for the currently active timeline step. */
+  opacity: 1; /* Fully opaque. */
+}
+
+/* Timeline Step Icon */
+.step-icon {
+  /* The circular icon for each timeline step. */
+  width: 50px;
+  height: 50px;
+  border-radius: 50%; /* Makes it a circle. */
+  background: var(--card-bg); /* Background color. */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px; /* Icon size (if using font icons). */
+  margin-bottom: 10px; /* Space below the icon. */
+  z-index: 2; /* Above the progress bar. */
+  transition: all 0.5s ease; /* Smooth transition for active state. */
+  border: 2px solid var(--primary-color); /* Border color. */
+}
+
+.timeline-step.active .step-icon {
+  /* Styles for the icon of an active timeline step. */
+  background: var(--primary-color); /* Fills with primary accent color. */
+  transform: scale(1.1); /* Slightly enlarges the icon. */
+}
+
+/* Timeline Step Label */
+.step-label {
+  /* Text label for each timeline step (e.g., "Atmospheric Entry"). */
+  font-weight: bold;
+  margin-bottom: 5px;
+  font-family: "Orbitron", sans-serif; /* Uses heading font. */
+  text-align: center;
+}
+
+/* Timeline Step Details */
+.step-details {
+  /* Additional descriptive text for each timeline step. */
+  font-size: 0.9rem;
+  text-align: center;
+  min-height: 40px; /* Ensures consistent height even with short text. */
+  padding: 0 10px; /* Horizontal padding. */
+}
+
+/* Horizontal Layout for Timeline on Larger Screens */
+@media (min-width: 768px) {
+  .impact-timeline {
+    display: flex; /* Arranges steps horizontally. */
+    justify-content: space-between; /* Distributes space between steps. */
+  }
+  
+  .timeline-progress {
+    top: 30px; /* Adjust vertical position for horizontal layout. */
+    width: 100%; /* Spans the full width of the timeline. */
+    transform: scaleX(0); /* Initially scaled to zero, animated to fill. */
+    transform-origin: left; /* Animation originates from the left. */
+  }
+  
+  .timeline-step {
+    flex: 1; /* Each step takes equal width. */
+    margin-bottom: 0; /* No bottom margin in horizontal layout. */
+  }
+}

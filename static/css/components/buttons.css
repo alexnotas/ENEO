@@ -1,0 +1,131 @@
+/* Primary Button Styling */
+.btn-primary {
+  /* Styles for the main action buttons (e.g., "Run Simulation"). */
+  background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+  background-size: 200% auto; /* For gradient animation on hover */
+  border: none;
+  font-weight: bold;
+  letter-spacing: 1px;
+  padding: 0.75rem 1.5rem; /* Added padding for better touch targets */
+  border-radius: 8px; /* Consistent border-radius */
+  color: white;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-position 0.4s ease;
+}
+
+.btn-primary:hover {
+  /* Hover effect for primary buttons: slight lift and shadow. */
+  transform: translateY(-3px) scale(1.02); /* Enhanced lift and scale */
+  box-shadow: 0 6px 18px rgba(255, 107, 53, 0.45);
+  background-position: right center; /* Change gradient direction */
+}
+
+.btn-primary:active {
+  transform: translateY(-1px) scale(0.99); /* Press down effect */
+  box-shadow: 0 3px 10px rgba(255, 107, 53, 0.3);
+  background-position: left center; /* Optional: revert gradient or change further */
+}
+
+/* "Generate NEO" Button Styling */
+.btn-generate-neo {
+  /* Specific styles for the "Generate a NEO" button. */
+  background: linear-gradient(45deg, var(--secondary-color), var(--primary-color)); /* Reversed gradient. */
+  border: none;
+  font-weight: bold;
+  letter-spacing: 1px;
+  transition: transform 0.2s ease;
+  color: white; /* Ensures text is white. */
+}
+
+.btn-generate-neo:hover {
+  /* Hover effect for the "Generate NEO" button. */
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 158, 53, 0.4);
+  color: white; /* Ensures text remains white on hover. */
+}
+
+/* Outline Primary Button Styling (used in map controls) */
+.btn-outline-primary {
+  /* Styles for outline-style buttons. */
+  background: var(--card-bg); /* Matches card background. */
+  color: var(--text-primary); /* Text color. */
+  border-color: var(--primary-color); /* Border using primary accent color. */
+}
+
+.btn-outline-primary:hover,
+.btn-check:checked + .btn-outline-primary {
+  /* Styles for hovered or checked outline buttons. */
+  background: var(--primary-color); /* Fills with primary accent color. */
+  color: white; /* Text becomes white. */
+  border-color: var(--primary-color); /* Border remains primary accent color. */
+}
+
+/* About Button Styling */
+.about-btn {
+  /* position: absolute; */ /* No longer needed */
+  /* top: 20px; */
+  /* right: 20px; */
+  border-radius: 25px;
+  background: rgba(45, 45, 45, 0.85);
+  border: 1px solid var(--primary-color);
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.375rem 1rem;
+  /* z-index: 1001; */ /* No longer needed */
+  transition: all 0.3s ease;
+}
+
+.about-btn .mdi {
+  font-size: 1.25rem;
+}
+
+.about-btn:hover {
+  background: var(--primary-color);
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 0 15px rgba(255, 107, 53, 0.5);
+}
+
+/* NASA Button — same behavior as .btn-primary, but NASA blue */
+.btn-nasa {
+  background: linear-gradient(45deg, var(--nasa-blue), var(--nasa-blue-600));
+  background-size: 200% auto;
+  border: none;
+  font-weight: bold;
+  letter-spacing: 1px;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  color: #fff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-position 0.4s ease;
+  box-shadow: 0 6px 18px rgba(11, 61, 145, 0.45);
+}
+
+.btn-nasa:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 6px 18px rgba(11, 61, 145, 0.6);
+  background-position: right center;
+}
+
+.btn-nasa:active {
+  transform: translateY(-1px) scale(0.99);
+  box-shadow: 0 3px 10px rgba(11, 61, 145, 0.35);
+  background-position: left center;
+}
+
+.btn-nasa:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 0.25rem rgba(252, 61, 33, 0.35); /* NASA red focus ring */
+}
+
+.btn-nasa .mdi { margin-right: 0.45rem; }
+
+/* Disabled state to match look-and-feel */
+.btn-nasa:disabled,
+.btn-nasa[disabled] {
+  opacity: 0.75;
+  cursor: not-allowed;
+  box-shadow: none;
+}

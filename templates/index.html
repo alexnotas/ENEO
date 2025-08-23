@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Standard HTML head elements: character set, viewport, title, and stylesheets -->
+  <meta charset="UTF-8" />
+  <title>ENEO - Evaluating Near Earth Objects Impacts</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="ENEO: A web-based simulator to evaluate and visualize the impact effects of Near Earth Objects (NEOs) on population and economy. Calculate asteroid impact scenarios, including crater size, airblast, thermal radiation, and seismic effects." />
+  <meta name="keywords" content="NEO, Near Earth Object, asteroid impact, meteor, impact simulation, ENEO, asteroid simulator, impact effects, crater calculation, space, astronomy, risk assessment, population impact, economic impact" />
+  <meta name="author" content="NTUA" />
+  <meta name="robots" content="index, follow" />
+  
+  <!-- External CSS libraries: Bootstrap for styling, Material Design Icons, Google Fonts -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <link
+    href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css"
+    rel="stylesheet"
+  />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rubik:wght@300;400;600&display=swap"
+    rel="stylesheet"
+  />
+  <!-- Leaflet CSS for interactive map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <!-- Custom application stylesheet -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+</head>
+<body>
+  <!-- Loading Overlay: Displayed during simulation processing -->
+  <div class="loading-overlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-message">
+      Running asteroid impact simulation...
+    </div>
+    <div class="loading-tip">
+      This may take a few moments while we calculate impact effects and population data.
+    </div>
+  </div>
+
+  <!-- Fixed Header Elements -->
+  <div class="ntua-logo-container">
+  <!-- Main Application Container -->
+  <div class="container py-5">
+    <!-- Header with Logo and About Button -->
+    <header class="top-header d-flex justify-content-between align-items-center mb-4">
+      <!-- NTUA Logo Display -->
+      <div class="ntua-logo-container">
+        <img src="https://lh3.googleusercontent.com/proxy/u94mKBaAcPBddRfQysF4ycffEnGydrKQhDD4PYo7Zyib9-ogn-fSqVE45zbZ-KuIsIa0te0YEOjcBdrbMU4dD4OVxPuoYn7e3zJv1JJhpa-nZCBCYX_KWCB0Z6_jWuzkWo0ScGxO8SFodLQbd9HD4TvBHQBp7goDV_tDF1equQ" 
+             alt="NTUA Logo" 
+             class="ntua-logo">
+      </div>
+
+      <!-- About Button -->
+      <button type="button" class="btn about-btn" data-bs-toggle="modal" data-bs-target="#aboutModal" aria-label="About ENEO">
+        <i class="mdi mdi-information-outline me-1"></i> About
+      </button>
+    </header>
+
+    <!-- Simulation Input Card: Contains all user inputs for the simulation -->
+    <div class="simulation-card p-4 mb-4">
+      <!-- Application Title and Description -->
+      <div class="text-center mb-5">
+        <h1 class="display-3 mb-3 main-title">
+          <i class="mdi mdi-meteor text-danger me-2"></i>
+          <span class="text-gradient">ENEO</span>
+        </h1>
+        <p class="lead fw-bold">Evaluating Near Earth Objects Impacts</p>
+        <p class="description-text">Calculate immediate NEO impact effects on population and economy</p>
+      </div>
+
+      <!-- Parameter Group: Asteroid Characteristics -->
+      <div class="parameter-group">
+        <h3 class="mb-4">
+          <i class="mdi mdi-tune-variant icon-badge"></i>Simulation Parameters
+        </h3>
+        <!-- Form for submitting simulation parameters -->
+        <form id="simulationForm">
+          <div class="row g-4">
+            <!-- Diameter Input -->
+            <div class="col-md-6">
+              <label class="form-label">Diameter (meters)</label>
+              <input
+                type="number"
+                class="form-control form-control-lg"
+                id="diameter"
+                required
+                step="0.01"
+                placeholder="e.g., 50"
+                min="1"
+              />
+              <div class="input-hint">Typical range: 10m - 10km</div>
+            </div>
+
+            <!-- Density Input -->
+            <div class="col-md-6">
+              <label class="form-label">Density (kg/m³)</label>
+              <div class="input-group">
+                <input
+                  type="number"
+                  class="form-control form-control-lg"
+                  id="density"
+                  value="3000"
+                  step="0.01"
+                  placeholder="e.g., 3000"
+                  min="1000"
+                  max="8000"
+                />
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary"
+                  onclick="document.getElementById('density').value = 3000"
+                >
+                  Reset
+                </button>
+              </div>
+              <div class="input-hint">Stony asteroids: 2500-3500 kg/m³</div>
+            </div>
+
+            <!-- Velocity Input -->
+            <div class="col-md-4">
+              <label class="form-label">Velocity (km/s)</label>
+              <input
+                type="number"
+                class="form-control form-control-lg"
+                id="velocity"
+                required
+                step="0.01"
+                placeholder="e.g., 20"
+                min="11"
+                max="72"
+              />
+              <div class="input-hint">Earth impact: 11-72 km/s</div>
+            </div>
+
+            <!-- Entry Angle Input -->
+            <div class="col-md-4">
+              <label class="form-label">Entry Angle (°)</label>
+              <input
+                type="number"
+                class="form-control form-control-lg"
+                id="entry_angle"
+                required
+                step="0.01"
+                placeholder="e.g., 45"
+                min="15"
+                max="90"
+              />
+              <div class="input-hint">15° = shallow, 90° = vertical</div>
+            </div>
+
+            <!-- Distance Input for Analysis -->
+            <div class="col-md-4">
+              <label class="form-label">Distance (km)</label>
+              <input
+                type="number"
+                class="form-control form-control-lg"
+                id="distance"
+                required
+                step="0.01"
+                placeholder="e.g., 100"
+                min="1"
+              />
+              <div class="input-hint">Reference distance from impact point for analysis</div>
+            </div>
+          </div>
+
+          <!-- Action Buttons: Run Simulation and Generate Sample Data -->
+          <div class="text-center mt-4">
+            <button type="submit" class="btn btn-primary btn-lg px-5">
+              <i class="mdi mdi-rocket-launch"></i> Run Simulation
+            </button>
+            <button
+              type="button"
+              class="btn btn-outline-secondary btn-lg px-5 ms-2"
+              onclick="loadSampleData()"
+            >
+              <i class="mdi mdi-test-tube"></i> Generate a NEO
+            </button>
+            <!-- A new button to fetch data from NASA Sentry API. -->
+            <button
+              type="button"
+              class="btn btn-nasa btn-lg px-5 ms-2"
+              id="nasaDataBtn"
+              onclick="loadNasaData()"
+            >
+              <i class="mdi mdi-satellite-variant"></i> Get data from NASA
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Parameter Group: Impact Location Selection -->
+      <div class="parameter-group">
+        <h3 class="mb-4">
+          <i class="mdi mdi-map-marker"></i> Impact Location
+        </h3>
+        <!-- Interactive Map for selecting impact coordinates -->
+        <div id="map"></div>
+        <!-- Map Controls: Radio buttons for selecting zone types to display -->
+        <div class="map-controls mt-3">
+          <div class="btn-group" role="group" aria-label="Zone type selector for map display">
+            <input type="radio" class="btn-check" name="zonetype" id="zoneNone" value="none" checked>
+            <label class="btn btn-outline-primary" for="zoneNone">None</label>
+            
+            <input type="radio" class="btn-check" name="zonetype" id="zoneCrater" value="crater">
+            <label class="btn btn-outline-primary" for="zoneCrater">Crater</label>
+            
+            <input type="radio" class="btn-check" name="zonetype" id="zoneAirblast" value="airblast">
+            <label class="btn btn-outline-primary" for="zoneAirblast">Overpressure</label>
+            
+            <input type="radio" class="btn-check" name="zonetype" id="zoneWind" value="wind">
+            <label class="btn btn-outline-primary" for="zoneWind">Wind</label>
+            
+            <input type="radio" class="btn-check" name="zonetype" id="zoneThermal" value="thermal">
+            <label class="btn btn-outline-primary" for="zoneThermal">Thermal</label>
+            
+            <input type="radio" class="btn-check" name="zonetype" id="zoneSeismic" value="seismic">
+            <label class="btn btn-outline-primary" for="zoneSeismic">Seismic</label>
+            
+            <input type="radio" class="btn-check" name="zonetype" id="zoneEjecta" value="ejecta">
+            <label class="btn btn-outline-primary" for="zoneEjecta">Ejecta</label>
+            
+            <input type="radio" class="btn-check" name="zonetype" id="zoneVulnerability" value="vulnerability">
+            <label class="btn btn-outline-primary" for="zoneVulnerability">Vulnerability</label>
+          </div>
+        </div>
+        <div class="text-center">
+          <small class="text-white">Click on the map to set impact location</small>
+        </div>
+        <input type="hidden" id="latitude" name="latitude" />
+        <input type="hidden" id="longitude" name="longitude" />
+      </div>
+
+      <!-- Add this dropdown div after the map controls btn-group -->
+      <div id="vulnerabilitySelectorDiv" style="display: none; margin-top: 15px; padding: 15px; background: rgba(45, 45, 45, 0.8); border-radius: 10px; border-left: 4px solid var(--primary-color);">
+        <label for="vulnerabilityTypeSelect" class="form-label" style="color: var(--secondary-color); margin-bottom: 8px; font-weight: 500;">Select Vulnerability Type:</label>
+        <select id="vulnerabilityTypeSelect" class="form-select" style="background: rgba(45, 45, 45, 0.9); border: 1px solid var(--primary-color); color: var(--text-primary);">
+          <option value="vulnerability_combined" selected>Combined Vulnerability</option>
+          <option value="vulnerability_thermal">Thermal-Induced Vulnerability</option>
+          <option value="vulnerability_overpressure">Overpressure-Induced Vulnerability</option>
+          <option value="vulnerability_seismic">Seismic-Induced Vulnerability</option>
+          <option value="vulnerability_ejecta">Ejecta-Induced Vulnerability</option>
+          <option value="vulnerability_wind">Wind-Induced Vulnerability</option>
+        </select>
+      </div>
+    </div> <!-- End of Simulation Input Card -->
+
+    <!-- Results Container: Displays simulation output, initially hidden -->
+    <div id="resultsContainer" class="d-none">
+      <!-- Impact Overview Section: Key metrics of the impact event -->
+      <div class="impact-visual text-center mb-5">
+        <h2 class="mb-4">
+          <i class="mdi mdi-chart-areaspline"></i> Impact Overview
+        </h2>
+        <div class="row" id="impactOverviewContent">
+          <!-- Dynamically populated with energy, velocity, crater size -->
+          <div class="col-md-4">
+            <div class="dynamic-value" id="energyValue">-</div>
+            <div>Total Energy (MT)</div>
+          </div>
+          <div class="col-md-4">
+            <div class="dynamic-value" id="velocityValue">-</div>
+            <div>Impact Velocity</div>
+          </div>
+          <div class="col-md-4">
+            <div class="dynamic-value" id="craterValue">-</div>
+            <div>Crater Diameter</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detailed Impact Effects Card -->
+      <div class="result-card p-4">
+        <h3 class="mb-4">
+          <i class="mdi mdi-alert-octagon icon-badge"></i>Impact Effects
+        </h3>
+        <!-- Tab navigation for different effect categories -->
+        <nav>
+          <div class="nav nav-tabs" id="nav-tab" role="tablist">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#nav-overpressure" type="button">
+              <i class="mdi mdi-air-filter"></i> Overpressure
+            </button>
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-wind" type="button">
+              <i class="mdi mdi-weather-windy"></i> Wind
+            </button>
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-thermal" type="button">
+              <i class="mdi mdi-fire"></i> Thermal
+            </button>
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-seismic" type="button">
+              <i class="mdi mdi-earth"></i> Seismic
+            </button>
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-ejecta" type="button">
+              <i class="mdi mdi-meteor"></i> Ejecta
+            </button>
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-tsunami" type="button">
+              <i class="mdi mdi-tsunami"></i> Tsunami
+            </button>
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-vulnerability" type="button">
+              <i class="mdi mdi-alert-octagon"></i> Vulnerability
+            </button>
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-population" type="button">
+              <i class="mdi mdi-account-group"></i> Population
+            </button>
+            <!-- Countries Tab: Displays impact breakdown by affected countries -->
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-countries" type="button">
+              <i class="mdi mdi-flag"></i> Countries
+            </button>
+            <!-- Economic Impact Tab: Shows estimated economic damage -->
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-economic" type="button">
+              <i class="mdi mdi-currency-usd"></i> Economic
+            </button>
+          </div>
+        </nav>
+        <!-- Tab content panels -->
+        <div class="tab-content" id="nav-tabContent">
+          <!-- Overpressure Effects Panel -->
+          <div class="tab-pane fade show active" id="nav-overpressure">
+            <div class="row g-4" id="overpressureEffects"><!-- Content dynamically populated --></div>
+          </div>
+          <!-- Wind Effects Panel -->
+          <div class="tab-pane fade" id="nav-wind">
+            <div class="row g-4" id="windEffects"><!-- Content dynamically populated --></div>
+          </div>
+          <!-- Thermal Effects Panel -->
+          <div class="tab-pane fade" id="nav-thermal">
+            <div class="row g-4" id="thermalEffects"><!-- Content dynamically populated --></div>
+          </div>
+          <!-- Seismic Effects Panel -->
+          <div class="tab-pane fade" id="nav-seismic">
+            <div class="row g-4" id="seismicEffects"><!-- Content dynamically populated --></div>
+          </div>
+          <!-- Ejecta Effects Panel -->
+          <div class="tab-pane fade" id="nav-ejecta">
+            <div class="row g-4" id="ejectaEffects"><!-- Content dynamically populated --></div>
+          </div>
+          <!-- Tsunami Effects Panel -->
+          <div class="tab-pane fade" id="nav-tsunami">
+            <div class="row g-4" id="tsunamiEffects">
+              <!-- Tsunami effects will be populated here by JavaScript -->
+            </div>
+          </div>
+          <!-- Vulnerability Analysis Panel -->
+          <div class="tab-pane fade" id="nav-vulnerability">
+            <div class="row g-4">
+              <!-- Vulnerability analysis content populated by JavaScript -->
+            </div>
+          </div>
+          <!-- Population Impact Panel -->
+          <div class="tab-pane fade" id="nav-population">
+            <div class="population-card mb-4">
+              <h4 class="mb-3">Total Estimated Casualties</h4>
+              <div class="h2 text-danger mb-3" id="totalCasualties">-</div>
+              <small class="text-muted text-highlight-orange">Based on population density and vulnerability zones</small>
+            </div>
+            <div class="row g-4" id="populationResults">
+              <!-- Population impact results populated by JavaScript -->
+            </div>
+          </div>
+          <!-- Affected Countries Panel -->
+          <div class="tab-pane fade" id="nav-countries">
+            <div class="country-summary mb-4">
+              <h4>Affected Countries</h4>
+              <small class="text-muted text-highlight-orange">Impact breakdown by country based on geographic boundaries</small>
+            </div>
+            <div class="row g-4" id="countriesResults">
+              <!-- Country-specific results populated by JavaScript -->
+            </div>
+          </div>
+          <!-- Economic Impact Panel -->
+          <div class="tab-pane fade" id="nav-economic">
+            <div class="economy-summary mb-4">
+              <h4>Economic Impact Assessment</h4>
+              <div class="h2 text-danger mb-3" id="totalEconomicDamage">-</div>
+              <small class="text-muted text-highlight-orange">Estimated economic damage based on casualties and GDP per capita</small>
+            </div>
+            <div class="row g-4" id="economicResults">
+              <!-- Economic impact results populated by JavaScript -->
+            </div>
+          </div>
+        </div> <!-- End of Tab Content -->
+      </div> <!-- End of Detailed Impact Effects Card -->
+    </div> <!-- End of Results Container -->
+  </div> <!-- End of Main Application Container -->
+
+  <!-- JavaScript Libraries: Bootstrap for interactive components, Leaflet for map functionality -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+  ></script>
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <!-- Custom application JavaScript -->
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+  
+  <!-- About Modal -->
+  <div class="modal fade" id="aboutModal" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="aboutModalLabel">
+            <i class="mdi mdi-meteor text-danger me-2"></i>About ENEO
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p><strong>ENEO (Evaluating Near Earth Objects Impacts)</strong> is a web-based simulator developed as part of the diploma thesis of <span class="author-name">Alexandros Notas</span> at the School of Mining and Metallurgical Engineering, National Technical University of Athens (NTUA).</p>
+          <p>It allows users to model asteroid impact scenarios and visualize their potential effects. The simulation calculates various physical phenomena, including <span class="text-effect-crater">crater formation</span>, <span class="text-effect-overpressure">airblast overpressure</span>, <span class="text-effect-wind">wind speed</span>, <span class="text-effect-thermal">thermal radiation</span>, <span class="text-effect-seismic">seismic waves</span>, and <span class="text-effect-ejecta">ejecta distribution</span>, providing a comprehensive risk assessment tool.</p>
+          <p>Each effect is then processed for its potential <span class="text-effect-vulnerability">vulnerability</span>. These zones are used to model estimated casualties on global and national scales, and GDP per capita is used to provide a first estimate of the economic consequences.</p>
+          <p>To get started, define the impact parameters or use the <strong>'Generate a NEO'</strong> button for a quick scenario. Then, select a location on the map to simulate the impact and explore its potential effects.</p>
+          <p class="mt-3 fst-italic text-white-50"><i class="mdi mdi-cellphone-arrow-down me-1"></i>On mobile devices, remember to scroll down to view the full detailed effects (and scroll sideways until the Economic tab).</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Section -->
+  <footer class="footer">
+    <div class="container py-4">
+      <div class="text-center">
+        <p class="mb-1">Developed as part of the diploma thesis of</p>
+        <p class="mb-1"><span class="author-name">Alexandros Notas</span></p>
+        <p class="mb-1">Contact: 
+          <a href="mailto:alexnotas11@gmail.com">alexnotas11@gmail.com</a> | 
+          <a href="mailto:mm20037@mail.ntua.gr">mm20037@mail.ntua.gr</a>
+        </p>
+        <p class="mb-1">Supervisor:</p>
+        <p class="mb-1"><span class="author-name">Prof. Dimitrios Kaliampakos</span></p>
+        <p class="mb-1">Contact: 
+          <a href="mailto:dkal@metal.ntua.gr">dkal@metal.ntua.gr</a>
+        </p>
+        <p class="mb-0">School of Mining and Metallurgical Engineering, NTUA</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

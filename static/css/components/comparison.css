@@ -1,0 +1,42 @@
+/* Comparison Box Styling */
+.comparison-box {
+  background: rgba(255, 107, 53, 0.1); /* Subtle background using primary color */
+  border-left: 4px solid var(--primary-color); /* Highlight border */
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  display: none; /* Hidden by default, shown when content is added */
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease-in-out;
+}
+
+.comparison-box.visible {
+  display: flex;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.comparison-box .comparison-icon {
+  font-size: 2rem;
+  color: var(--secondary-color);
+  flex-shrink: 0;
+}
+
+.comparison-box .comparison-text {
+  flex-grow: 1;
+  line-height: 1.6;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

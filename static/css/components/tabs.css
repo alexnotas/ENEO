@@ -1,0 +1,41 @@
+/* Navigation Tabs Styling */
+.nav-tabs {
+  /* Styles for the container of navigation tabs (e.g., Overpressure, Wind, Thermal). */
+  border-bottom: 2px solid var(--primary-color); /* Bottom border for the tab group. */
+  margin-bottom: 1rem; /* Add some space below tabs */
+}
+
+.nav-link {
+  /* Styles for individual tab links. */
+  color: var(--text-primary); /* Text color for inactive tabs. */
+  border: 1px solid transparent; /* Transparent border initially. */
+  border-bottom: none; /* Remove bottom border for inactive tabs */
+  padding: 0.75rem 1.25rem; /* Adjust padding */
+  transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+  position: relative; /* For potential pseudo-elements or effects */
+  top: 1px; /* Align with the bottom border of .nav-tabs */
+}
+
+.nav-link:hover {
+  color: var(--secondary-color);
+  border-color: rgba(var(--primary-color), 0.3) rgba(var(--primary-color), 0.3) transparent;
+  background-color: rgba(var(--card-bg), 0.5);
+  transform: translateY(-2px);
+}
+
+.nav-link.active {
+  /* Styles for the currently active tab link. */
+  background: var(--card-bg); /* Background matching the card. */
+  border-color: var(--primary-color) var(--primary-color) var(--card-bg); /* Borders to create tab shape, bottom matches card bg */
+  color: var(--secondary-color); /* Text color for active tab. */
+  font-weight: bold; /* Bold text for active tab. */
+  transform: translateY(0); /* Reset transform */
+}
+
+/* Tab Content Pane Styling */
+.tab-pane {
+  /* Styles for the content area displayed when a tab is active. */
+  padding: 1.5rem; /* Inner spacing. */
+  background: var(--card-bg); /* Background matching the card. */
+  border-radius: 0 0 15px 15px; /* Rounded bottom corners to match tab container. */
+}

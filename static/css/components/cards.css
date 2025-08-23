@@ -1,0 +1,342 @@
+/* Simulation Input Card Styling */
+.simulation-card {
+  /* Styles for the primary card holding simulation inputs and map. */
+  background: var(--card-bg); /* Card background color. */
+  border-radius: 20px; /* Rounded corners for a softer look. */
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35); /* Slightly enhanced shadow */
+  border: 1px solid rgba(255, 107, 53, 0.25); /* Slightly more visible border */
+  backdrop-filter: blur(10px); /* Frosted glass effect for elements behind it (if any). */
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.simulation-card:hover {
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 107, 53, 0.4);
+}
+
+/* Parameter Group Styling */
+.parameter-group {
+  /* Styles for sections within the simulation card, like "Simulation Parameters" or "Impact Location". */
+  background: rgba(45, 45, 45, 0.85); /* Slightly more opaque */
+  border-radius: 15px; /* Rounded corners. */
+  padding: 1.75rem; /* Increased padding */
+  margin-bottom: 1.75rem; /* Increased margin */
+  border: 1px solid var(--primary-color); /* Border using the primary accent color. */
+  backdrop-filter: blur(5px); /* Subtle blur effect. */
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease; /* Smooth transitions for hover. */
+}
+
+.parameter-group:hover {
+  /* Hover effect for parameter groups: slight lift and enhanced shadow. */
+  transform: translateY(-4px) scale(1.01); /* More noticeable lift and slight scale */
+  box-shadow: 0 8px 20px rgba(255, 107, 53, 0.25); /* Enhanced shadow */
+  border-color: var(--secondary-color);
+}
+
+/* Impact Overview Visual Styling */
+.impact-visual {
+  /* Styles for the section displaying key impact overview metrics (energy, velocity, etc.). */
+  background: linear-gradient(45deg, var(--primary-color), var(--secondary-color)); /* Gradient background. */
+  border-radius: 15px; /* Rounded corners. */
+  padding: 2rem; /* Inner spacing. */
+  box-shadow: 0 0 20px rgba(255, 107, 53, 0.3); /* Glowing shadow effect. */
+  color: #ffffff !important; /* Ensures text is white. */
+  animation: gradientShift 10s ease infinite; /* Animates the background gradient. */
+}
+
+.impact-visual .dynamic-value {
+  /* Styles for the dynamically updated values within the impact overview. */
+  color: #ffffff !important; /* Ensures text is white. */
+  text-shadow: none !important; /* Removes any inherited text shadow. */
+  font-size: 2rem; /* Large font size for emphasis. */
+  font-weight: 700; /* Bold font weight. */
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Soft text shadow. */
+  margin-bottom: 0.5rem; /* Space below each value. */
+}
+
+/* Individual Effect Card Styling (within tabs) */
+.effect-card {
+  /* Styles for cards displaying specific effect details (e.g., a single overpressure level). */
+  background: rgba(45, 45, 45, 0.92); /* Slightly more opaque */
+  border-radius: 10px; /* Rounded corners. */
+  padding: 1.5rem; /* Increased padding */
+  margin-bottom: 1.25rem; /* Increased margin */
+  border-left: 5px solid var(--primary-color); /* Thicker accent border */
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-left-color 0.25s ease; /* Smooth transitions for hover. */
+}
+
+.effect-card:hover {
+  /* Hover effect for effect cards: slight lift and shadow. */
+  transform: translateY(-5px) scale(1.015); /* Enhanced lift and slight scale */
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25); /* Enhanced shadow */
+  border-left-color: var(--secondary-color); /* Change accent border color on hover */
+}
+
+/* CONSOLIDATED DANGER ZONE STYLES */
+/* General styling for elements indicating a danger zone or critical information. */
+.danger-zone {
+  padding: 0.75rem 1rem; /* Adjusted padding */
+  margin: 0.5rem 0;
+  background: rgba(var(--danger-color), 0.1); /* Use danger color variable for background */
+  border-left: 4px solid var(--danger-color); /* Red accent border on the left. */
+  border-radius: 8px; /* Consistent rounded corners. */
+  color: var(--text-primary); /* Ensure text is readable */
+}
+
+/* Danger Zone Card Styling (more specific than general .danger-zone) */
+.danger-zone-card {
+  /* Styles for cards specifically highlighting danger zones. */
+  border-left: 4px solid var(--danger-color); /* Red accent border. */
+  background-color: rgba(var(--danger-color), 0.08); /* Slightly different background if needed, or use .danger-zone */
+  padding: 1rem; /* Ensure consistent padding */
+  border-radius: 10px; /* Match other cards if desired */
+  margin-bottom: 1rem;
+}
+
+/* Dynamic Value within Danger Zone Card */
+.danger-zone-card .dynamic-value {
+  font-weight: 500;
+  color: var(--text-primary); /* Resets to default text color. */
+}
+
+/* Description within Danger Zone */
+.danger-zone-description {
+  color: var(--primary-color) !important; /* Uses primary accent color for emphasis. */
+  font-weight: 500;
+  font-size: 0.9rem; /* Slightly smaller for description */
+}
+
+/* Population Impact Card Styling */
+.population-card {
+  /* Styles for cards displaying population impact data. */
+  background: rgba(45, 45, 45, 0.9);
+  border-radius: 10px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  border-left: 4px solid var(--primary-color); /* Accent border. */
+}
+
+/* Individual Population Zone Item Styling */
+.population-zone {
+  /* Styles for rows within the population card, detailing impact per zone. */
+  display: flex; /* Arranges zone name and population count side-by-side. */
+  justify-content: space-between; /* Pushes items to opposite ends. */
+  align-items: center; /* Vertically aligns items. */
+  padding: 0.5rem 0; /* Vertical padding. */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Separator line. */
+}
+
+.population-zone:last-child {
+  border-bottom: none; /* Removes border from the last item. */
+}
+
+/* Country Tab Specific Card Styling */
+.country-card {
+  /* Styles for cards within the "Countries" tab. */
+  border-left: 4px solid #3498db !important; /* Blue accent border. */
+}
+
+.country-stats {
+  /* Container for statistics within a country card. */
+  margin-top: 10px;
+}
+
+.stat-label {
+  /* Styles for labels of statistics (e.g., "Population Affected:"). */
+  font-size: 0.85rem;
+  opacity: 0.8; /* Slightly transparent. */
+  margin-bottom: 3px;
+}
+
+.stat-value {
+  /* Styles for the actual statistic values. */
+  font-weight: 500;
+  font-size: 1.2rem;
+}
+
+/* Title for Zone Breakdown within Country Card */
+.zone-breakdown-title {
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-top: 8px;
+  color: var(--secondary-color); /* Uses secondary accent color. */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Separator line. */
+  padding-bottom: 3px;
+}
+
+/* Individual Zone Item in Country Breakdown */
+.country-zone-item {
+  padding: 3px 0;
+  border-bottom: 1px dotted rgba(255, 255, 255, 0.1); /* Dotted separator. */
+}
+
+.country-zone-item:last-child {
+  border-bottom: none; /* Removes border from the last item. */
+}
+
+/* Economic Impact Tab Specific Card Styling */
+.economy-card {
+  /* Styles for cards within the "Economic" tab. */
+  border-left: 4px solid #28a745 !important; /* Green accent border. */
+}
+
+.economy-stats {
+  /* Container for statistics within an economy card. */
+  margin-top: 10px;
+}
+
+.economy-card .stat-label {
+  font-size: 0.85rem;
+  opacity: 0.8;
+  margin-bottom: 3px;
+}
+
+.economy-card .stat-value {
+  font-weight: 500;
+  font-size: 1.2rem;
+}
+
+/* Container for GDP Impact details */
+.gdp-impact-container {
+  margin-top: 8px;
+  background: rgba(0, 0, 0, 0.1); /* Dark, semi-transparent background. */
+  border-radius: 4px;
+  padding: 5px;
+}
+
+/* Scale Bar for Economic Impact */
+.economy-impact-scale {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1); /* Light, semi-transparent track. */
+  border-radius: 3px;
+  margin-top: 5px;
+  overflow: hidden; /* Ensures inner bar doesn't exceed bounds. */
+}
+
+.economy-impact-bar {
+  /* The actual colored bar representing the economic impact percentage. */
+  height: 100%;
+  border-radius: 3px;
+}
+
+/* Loading Fact Styling (within loading overlay) */
+.loading-fact {
+  background: rgba(30, 30, 30, 0.85); /* Darker, slightly more opaque background */
+  border-top: 3px solid; /* Prepare for gradient border */
+  border-image-slice: 1;
+  border-image-source: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  border-radius: 8px; /* Slightly less rounded corners */
+  padding: 1.25rem 1.5rem; /* Adjusted padding */
+  margin-top: 2.5rem; /* Increased top margin */
+  max-width: 650px; /* Slightly wider */
+  text-align: center;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3); /* Softer, more diffuse shadow */
+  transition: opacity 0.5s ease-in-out, transform 0.3s ease-in-out;
+  color: var(--text-primary); /* Ensure text color is consistent */
+}
+
+.loading-fact.fact-fade {
+  opacity: 0;
+  transform: translateY(10px); /* Add a slight downward movement on fade out */
+}
+
+.fact-prefix {
+  display: block;
+  font-weight: 600; /* Slightly bolder */
+  color: var(--secondary-color);
+  margin-bottom: 0.75rem; /* Increased space */
+  font-size: 1.15rem; /* Slightly larger */
+  text-transform: uppercase; /* Uppercase for a modern touch */
+  letter-spacing: 0.5px;
+}
+
+.fact-text {
+  color: var(--text-primary);
+  font-size: 1.05rem; /* Slightly larger fact text */
+  line-height: 1.7; /* Improved line spacing for readability */
+  opacity: 0.9; /* Slightly softer text */
+}
+
+/* About Modal Styling */
+.modal-content {
+  background: var(--card-bg);
+  border-radius: 15px;
+  border: 1px solid var(--primary-color);
+  color: var(--text-primary);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35);
+}
+
+.modal-header {
+  border-bottom: 1px solid rgba(255, 107, 53, 0.3);
+  font-family: "Orbitron", sans-serif;
+}
+
+.modal-body {
+  line-height: 1.7;
+}
+
+.modal-body p {
+  margin-bottom: 1.25rem;
+}
+
+.modal-body p:last-child {
+  margin-bottom: 0;
+}
+
+.modal-footer {
+  border-top: 1px solid rgba(255, 107, 53, 0.3);
+}
+
+#aboutModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1050;
+  display: none; /* Bootstrap will control visibility */
+}
+
+/* Fix modal backdrop position */
+.modal-backdrop {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important; /* Cover full viewport width */
+  height: 100% !important; /* Cover full viewport height */
+  z-index: 1050 !important;
+  background-color: rgba(30, 30, 30, 0.92) !important; /* Match loading overlay background */
+}
+
+/* About Modal Custom Styling */
+#aboutModal .modal-content {
+  background: var(--card-bg);
+  border-radius: 15px;
+  border: 1px solid var(--primary-color);
+  color: var(--text-primary);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35);
+}
+
+#aboutModal .modal-header {
+  border-bottom: 1px solid rgba(255, 107, 53, 0.3);
+  font-family: "Orbitron", sans-serif;
+}
+
+#aboutModal .modal-body {
+  line-height: 1.7;
+}
+
+#aboutModal .modal-body p {
+  margin-bottom: 1.25rem;
+}
+
+#aboutModal .modal-body p:last-child {
+  margin-bottom: 0;
+}
+
+#aboutModal .modal-footer {
+  border-top: 1px solid rgba(255, 107, 53, 0.3);
+}

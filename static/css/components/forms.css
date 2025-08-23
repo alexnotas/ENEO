@@ -1,0 +1,35 @@
+/* Form Control Styling (Inputs, Selects) */
+.form-control {
+  /* General styles for form input fields. */
+  background: rgba(40, 40, 40, 0.85); /* Slightly darker base */
+  border: 1px solid var(--primary-color); /* Border using primary accent color. */
+  color: var(--text-primary); /* Text color within inputs. */
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* Smoother transition */
+  backdrop-filter: blur(5px); /* Subtle blur effect. */
+  border-radius: 8px; /* Consistent border-radius */
+}
+
+.form-control:focus {
+  /* Styles for form inputs when they receive focus. */
+  background: rgba(45, 45, 45, 0.95); /* Slightly more opaque background. */
+  border-color: var(--secondary-color); /* Changes border color to secondary accent. */
+  box-shadow: 0 0 0 0.2rem rgba(var(--secondary-color), 0.25), 0 0 12px rgba(255, 158, 53, 0.4); /* Bootstrap-like focus ring + glow */
+  transform: translateY(-1px); /* Slight lift effect. */
+  color: var(--text-primary); /* Ensure text color remains white on focus */
+}
+
+/* Style placeholder text to be white */
+.form-control::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+  color: var(--text-primary);
+  opacity: 0.7; /* Optional: make placeholder slightly less prominent than typed text */
+}
+
+.form-control:-ms-input-placeholder { /* Internet Explorer 10-11 */
+  color: var(--text-primary);
+  opacity: 0.7;
+}
+
+.form-control::-ms-input-placeholder { /* Microsoft Edge */
+  color: var(--text-primary);
+  opacity: 0.7;
+}

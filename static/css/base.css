@@ -1,0 +1,210 @@
+/* Base Variables */
+:root {
+  /* Color Palette: Defines the core colors used throughout the application. */
+  --primary-color: #ff6b35; /* Primary accent color, often used for interactive elements. */
+  --secondary-color: #ff9e35; /* Secondary accent color, for highlights and variations. */
+  --danger-color: #d7263d; /* Color for warnings, errors, and critical alerts. */
+  --background-color: #1a1a1a; /* Base background color for the application. */
+  --card-bg: #2d2d2d; /* Background color for card-like elements. */
+  --text-primary: #f5f5f5; /* Main text color, ensuring readability on dark backgrounds. */
+  --eneo-gradient: linear-gradient(45deg, #f5a623, #ff4b4b); /* Gradient for the "ENEO" title text. */
+
+  --nasa-blue: #0B3D91;
+  --nasa-blue-600: #1C5DB6;
+  --nasa-red: #FC3D21;
+}
+
+/* Base Element Styling */
+body {
+  /* Base body styles: Sets default font, background, and text color. */
+  font-family: "Rubik", sans-serif; /* Primary font for general text content. */
+  background: linear-gradient(135deg, var(--background-color) 0%, #2a1e1e 100%); /* Subtle gradient background. */
+  color: var(--text-primary); /* Default text color. */
+  min-height: 100vh; /* Ensures the body takes at least the full viewport height. */
+}
+
+/* Headings */
+h1, h2, h3 {
+  /* Typography for headings: Uses a distinct font for emphasis. */
+  font-family: "Orbitron", sans-serif; /* Futuristic font for titles and section headers. */
+  letter-spacing: 1px; /* Adds a slight spacing between letters for clarity. */
+}
+
+/* Main Title Styling */
+.main-title {
+  /* Styles for the primary application title "ENEO". */
+  text-align: center;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 4rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-right: 40px; /* Adjust as needed for balance with icon */
+  cursor: pointer;
+  position: relative; /* Useful for potential pseudo-elements or advanced layouts */
+
+  /* Enhanced Transitions for the container and its text shadow */
+  transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1), 
+              text-shadow 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.main-title:hover {
+  /* Enhanced hover effects for the main title */
+  transform: translateY(-5px) scale(1.03); /* More noticeable lift and scale */
+  text-shadow: 0 10px 25px rgba(255, 107, 53, 0.5); /* Deeper, more spread-out glow */
+}
+
+.main-title:active {
+  /* Active state for click feedback */
+  transform: translateY(-2px) scale(1.01); /* Subtle press-down effect */
+  text-shadow: 0 5px 15px rgba(255, 107, 53, 0.4);
+}
+
+/* Meteor Icon Styling within the Main Title */
+.main-title .title-meteor-icon {
+  /* Styles for the custom SVG meteor icon next to the title. */
+  display: inline-block;
+  height: 1em; /* Icon height relative to the font size of .main-title */
+  width: 1em;  /* Icon width relative to the font size of .main-title */
+  margin-right: 15px; /* Increased spacing for better visual separation */
+  
+  background-color: var(--danger-color);
+  -webkit-mask-image: url("../images/meteor.svg");
+  mask-image: url("../images/meteor.svg");
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+
+  /* Initial state for transforms and filters */
+  transform: rotate(0deg) scale(1) translateX(0);
+  filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.15)); /* Softer base shadow */
+
+  /* Enhanced transitions for the icon - using a "bouncy" or "overshoot" easing */
+  transition: transform 0.45s cubic-bezier(0.68, -0.55, 0.265, 1.55), 
+              filter 0.4s ease,
+              background-color 0.3s ease; /* Added transition for background-color */
+}
+
+.main-title:hover .title-meteor-icon {
+  /* Enhanced hover effects for the meteor icon */
+  transform: translateX(5px) rotate(-20deg) scale(1.25); /* Icon "shoots out" slightly, rotates more, and enlarges */
+  filter: drop-shadow(2px 2px 8px rgba(0,0,0,0.3)) /* Darker offset shadow for depth */
+          drop-shadow(0 0 10px var(--danger-color)); /* Color glow matching the icon */
+  background-color: var(--primary-color); /* Change color on hover for more feedback */
+}
+
+.main-title:active .title-meteor-icon {
+  /* Active state for the icon */
+  transform: translateX(2px) rotate(-10deg) scale(1.15); /* Less dramatic than hover, but still active */
+  filter: drop-shadow(1px 1px 4px rgba(0,0,0,0.2))
+          drop-shadow(0 0 6px var(--danger-color));
+  background-color: var(--secondary-color);
+}
+
+/* Gradient Text Styling for "ENEO" */
+.main-title .text-gradient {
+  /* Styles for the "ENEO" part of the title, applying a gradient. */
+  margin-left: 0; /* Resets any default or inherited left margin. */
+  display: inline-block; /* Ensures transform can be applied */
+  
+  /* Base filter for subtle glow and initial scale */
+  filter: drop-shadow(0 0 6px rgba(245, 166, 35, 0.4));
+  transform: scale(1);
+
+  /* Enhanced transitions for the gradient text */
+  transition: filter 0.35s cubic-bezier(0.25, 0.8, 0.25, 1), 
+              transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.main-title:hover .text-gradient {
+  /* Enhanced glow and scale effect for "ENEO" text on hover */
+  filter: drop-shadow(0 0 18px rgba(245, 166, 35, 0.7)); /* More intense and wider glow */
+  transform: scale(1.02); /* Subtle scale up for the text itself */
+}
+
+.main-title:active .text-gradient {
+  /* Active state for the gradient text */
+  filter: drop-shadow(0 0 12px rgba(245, 166, 35, 0.55));
+  transform: scale(1.005); /* Very subtle scale back */
+}
+
+/* Application Description Text Styling */
+.description-text {
+  /* Styles for the descriptive text below the main title. */
+  color: #ffffff !important; /* Ensures white text color, overriding other potential styles. */
+  font-size: 1.1rem; /* Slightly larger font size for readability. */
+  letter-spacing: 0.5px; /* Adds subtle letter spacing. */
+  font-weight: 300; /* Lighter font weight. */
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); /* Adds a soft shadow for depth. */
+  position: relative; /* Enables positioning of pseudo-elements. */
+  display: inline-block; /* Allows padding and ensures it behaves like a block but flows with text. */
+  padding: 0 15px; /* Adjusted horizontal padding */
+  margin-top: 10px; /* Increased space above the description text */
+  transition: color 0.3s ease;
+}
+
+/* Decorative Lines for Description Text */
+.description-text::before,
+.description-text::after {
+  /* Creates small decorative lines on either side of the description text. */
+  content: ""; /* Required for pseudo-elements to display. */
+  height: 1px; /* Line thickness. */
+  width: 30px; /* Line length. */
+  background: var(--primary-color); /* Line color. */
+  position: absolute; /* Positions the lines relative to the .description-text. */
+  top: 50%; /* Vertically centers the lines. */
+  transform: translateY(-50%) scaleX(1); /* Initial scale for animation */
+  transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), 
+              background-color 0.4s ease,
+              transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.description-text::before {
+  left: -40px; /* Adjusted position */
+  transform-origin: right;
+}
+
+.description-text::after {
+  right: -40px; /* Adjusted position */
+  transform-origin: left;
+}
+
+.description-text:hover::before,
+.description-text:hover::after {
+  width: 50px; /* Increase width on hover */
+  background: var(--secondary-color); /* Change color on hover */
+  transform: translateY(-50%) scaleX(1.1); /* Slight scale effect */
+}
+
+/* Text Selection Styling */
+::selection {
+  /* Custom styles for text selected by the user. */
+  background: var(--primary-color); /* Selection background color. */
+  color: white; /* Selected text color. */
+}
+
+/* Gradient Text General Styling */
+.text-gradient {
+  /* General utility class for applying a gradient to text (used for "ENEO" title). */
+  background: var(--eneo-gradient); /* Applies the defined gradient. */
+  -webkit-background-clip: text; /* Clips the background to the text shape (WebKit). */
+  background-clip: text; /* Standard property for clipping background to text. */
+  color: transparent; /* Makes the actual text color transparent, showing the gradient background. */
+  font-weight: 700; /* Bold font weight. */
+  letter-spacing: 0.05em; /* Adds letter spacing. */
+  text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2); /* Subtle text shadow. */
+}
+
+/* Keyframe Animation for Gradient Shift */
+@keyframes gradientShift {
+  /* Animates the background-position of the gradient for a dynamic effect. */
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}

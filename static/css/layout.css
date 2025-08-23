@@ -1,0 +1,629 @@
+/* Add Windows-specific zoom level for larger screens */
+@media (min-width: 992px) { /* Adjust this breakpoint as needed. 992px is a common tablet/desktop breakpoint. */
+  html {
+    zoom: 0.9;
+    -ms-zoom: 0.9; /* For older Internet Explorer versions, if necessary */
+  }
+}
+
+/* Main Content Container */
+.container {
+  /* Styles for the main content wrapper of the application. */
+  margin-left: auto; /* Centers the container horizontally. */
+  margin-right: auto; /* Centers the container horizontally. */
+  max-width: 90%; /* Sets a maximum width, allowing responsiveness. */
+  padding-left: 100px; /* Horizontal padding within the container. */
+  padding-right: 100px; /* Horizontal padding within the container. */
+}
+
+/* NTUA Logo Container */
+.ntua-logo-container {
+  /* Positions the NTUA logo at the top-left of the page. */
+  /* position: absolute; */ /* No longer needed */
+  /* top: 20px; */
+  /* left: 20px; */
+  z-index: 1000; /* Ensures logo is above most other content. */
+}
+
+.ntua-logo {
+  /* Styles for the NTUA logo image. */
+  width: 150px; /* Sets logo width. */
+  height: auto; /* Maintains aspect ratio. */
+  filter: brightness(0) invert(1); /* Converts a dark logo to white for visibility on dark background. */
+  opacity: 0.9; /* Slight transparency. */
+  transition: opacity 0.3s ease; /* Smooth transition for potential hover effects (not defined here). */
+  margin-left: -10px;  /* Adjusts horizontal position slightly. */
+}
+
+/* Default style for the description text container */
+.description-text {
+  text-align: center; /* Ensures the text and its inline pseudo-elements are centered */
+  /* Add other styles for .description-text if needed, like font-size, color, margin, etc. */
+  /* For example:
+  font-size: 1.1rem;
+  color: #cccccc;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  */
+}
+
+/* Default styles for description text decorative lines (sides of text) */
+/* These ensure the lines are visible on larger screens (desktops/laptops) */
+.description-text::before,
+.description-text::after {
+  content: "";
+  display: inline-block;    /* Lines will be on the same line as text */
+  width: 40px;              /* Adjust width as needed to match image */
+  height: 2px;
+  background-color: var(--primary-color); /* Changed to use primary color variable */
+  vertical-align: middle;   /* Aligns lines vertically with the text */
+  opacity: 1;
+  visibility: visible;
+}
+
+.description-text::before {
+  margin-right: 15px; /* Space between the left line and the text */
+}
+
+.description-text::after {
+  margin-left: 15px;  /* Space between the text and the right line */
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+/* Medium devices (tablets, less than 992px) */
+@media (max-width: 991.98px) {
+  .container {
+    padding-left: 20px;
+    padding-right: 20px;
+    max-width: 95%; /* Allow a bit more width */
+  }
+  
+  .main-title {
+    font-size: 3rem; /* Adjusted for tablets */
+    padding-right: 20px;
+  }
+  
+  .ntua-logo {
+    width: 120px;
+  }
+  
+  .nav-tabs {
+    flex-wrap: wrap; /* Allow tabs to wrap if they don't fit */
+  }
+  
+  .nav-link {
+    padding: 0.6rem 1rem; /* Slightly adjusted padding */
+    font-size: 0.9rem;
+  }
+  
+  #map {
+    height: 350px;
+  }
+
+  .parameter-group {
+    padding: 1.25rem;
+  }
+
+  .effect-card {
+    padding: 1.25rem;
+  }
+
+  .impact-visual {
+    padding: 1.5rem;
+  }
+}
+
+/* Small devices (phones, less than 768px) */
+@media (max-width: 767.98px) {
+  body {
+    -webkit-text-size-adjust: 100%; /* Prevent font scaling in landscape */
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  .container {
+    max-width: 100%;
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+  
+  .main-title {
+    font-size: 2.25rem; /* Further reduce for small phones */
+    padding-right: 0;
+    flex-direction: column; /* Stack icon and title */
+    align-items: center; /* Center items when stacked */
+  }
+  
+  .main-title .title-meteor-icon {
+    margin-right: 0;
+    margin-bottom: 10px; /* Space between icon and text */
+    height: 1.2em; /* Slightly larger icon relative to smaller font */
+    width: 1.2em;
+  }
+  
+  .description-text {
+    font-size: 1rem; /* Adjust description font size */
+    padding: 0 10px;
+  }
+
+  .about-btn {
+    /* top: 15px; */ /* No longer needed */
+    /* right: 15px; */ /* No longer needed */
+    padding: 0.25rem 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .description-text::before,
+  .description-text::after {
+    /* Hide decorative lines completely on mobile */
+    display: none; /* This will override the 'display: inline-block;' for mobile devices */
+  }
+  
+  /* Enhanced tab scrolling for mobile */
+  .nav-tabs {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;  /* IE and Edge */
+    padding-bottom: 5px;
+    border-bottom-width: 1px;
+    margin-bottom: 1rem;
+    /* Indicate scrollability with gradient */
+    background: linear-gradient(to right, transparent 80%, rgba(45, 45, 45, 0.3) 100%);
+  }
+  
+  .nav-tabs::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+  
+  .nav-link {
+    white-space: nowrap !important;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    flex-shrink: 0; /* Prevent tabs from shrinking */
+    min-width: max-content; /* Ensure content determines width */
+    margin-right: 2px; /* Add small gap between tabs */
+    border: 1px solid rgba(255, 107, 53, 0.3); /* More visible borders */
+  }
+  
+  .nav-link.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+  }
+  
+  #map {
+    height: 300px; /* Maintain height */
+    border-radius: 10px;
+    position: relative; /* Add relative positioning */
+  }
+
+  /* Add a visual cue for scrolling */
+  #map::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 30px; /* Adjust height as needed */
+    background: linear-gradient(to top, rgba(45, 45, 45, 0.75), transparent); /* Gradient to blend with card background */
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    pointer-events: none; /* Ensure the overlay doesn't block clicks */
+  }
+  
+  .parameter-group {
+    padding: 1rem;
+    border-radius: 10px;
+  }
+  
+  /* Adjust effect cards */
+  .effect-card {
+    padding: 1rem;
+    border-radius: 8px;
+    border-left-width: 4px;
+  }
+  
+  /* NTUA logo positioning */
+  .ntua-logo-container {
+    /* top: 15px; */ /* No longer needed */
+    /* left: 15px; */ /* No longer needed */
+  }
+  
+  .ntua-logo {
+    width: 100px;
+    margin-left: 0; /* Reset margin */
+  }
+
+  .form-label {
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem; /* Reduce space below label */
+  }
+
+  .form-control {
+    font-size: 0.95rem; /* Ensure readable font size */
+    padding: 0.5rem 0.75rem; /* Adjust padding */
+  }
+
+  .input-hint {
+    font-size: 0.8rem;
+  }
+}
+
+/* Extra small devices (small phones, less than 576px) */
+@media (max-width: 575.98px) {
+  .main-title {
+    font-size: 1.85rem; /* Further reduce for very small screens */
+  }
+  
+  .dynamic-value { /* General dynamic values, ensure specificity if needed */
+    font-size: 1.1rem !important;
+  }
+
+  .impact-visual .dynamic-value { /* Specific to impact visual */
+    font-size: 1.3rem !important;
+  }
+  
+  .loading-message {
+    font-size: 1.1rem;
+    padding: 0 10px;
+  }
+  
+  .loading-tip {
+    font-size: 0.85rem;
+    padding: 0 10px;
+  }
+  
+  .step-icon {
+    width: 35px;
+    height: 35px;
+    font-size: 16px;
+  }
+  
+  .step-label {
+    font-size: 0.8rem;
+  }
+  
+  .step-details {
+    font-size: 0.8rem;
+  }
+  
+  /* Make the form inputs more touch-friendly */
+  .form-control {
+    height: auto; /* Let padding and font-size determine height */
+    font-size: 0.9rem; /* Maintain readability */
+    padding: 0.6rem 0.8rem; /* Slightly more padding */
+  }
+  
+  .form-label {
+    font-size: 0.85rem;
+  }
+  
+  .input-hint {
+    font-size: 0.75rem;
+  }
+
+  .container {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .btn-primary, 
+  .btn-generate-neo, 
+  .btn-outline-secondary,
+  .btn-nasa { /* Added NASA button to match Run Simulation on mobile */
+    font-size: 0.9rem;
+    padding: 0.65rem 0.9rem;
+  }
+
+  .tab-pane {
+    padding: 0.75rem;
+  }
+
+  .effect-card {
+    padding: 0.75rem;
+  }
+
+  .parameter-group {
+    padding: 0.75rem;
+  }
+}
+
+/* Form Responsiveness */
+@media (max-width: 767.98px) {
+  /* Adjust the spacing between form inputs */
+  .row.g-4 { /* Bootstrap's gutter class */
+    --bs-gutter-y: 0.75rem; /* Adjust vertical gutter */
+    --bs-gutter-x: 0.75rem; /* Adjust horizontal gutter if needed */
+  }
+  
+  /* Stack form action buttons */
+  #simulationForm .text-center { /* Assuming this is the button container */
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem; /* Add gap between stacked buttons */
+  }
+  
+  #simulationForm .btn {
+    margin-bottom: 0; /* Remove bottom margin if using gap */
+    margin-left: 0 !important;
+  }
+  
+  /* Make the vulnerability selector more mobile-friendly */
+  #vulnerabilitySelectorDiv { /* If this is a specific container */
+    padding: 10px;
+  }
+  
+  /* Adjust the tab panes */
+  .tab-pane {
+    padding: 1rem;
+    border-radius: 0 0 10px 10px; /* Adjust radius */
+  }
+}
+
+/* Map Controls Responsiveness */
+@media (max-width: 767.98px) {
+  .map-controls .btn-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); /* More flexible grid */
+    width: 100%;
+    gap: 5px; /* Add gap for grid items */
+  }
+  
+  .map-controls .btn-outline-primary {
+    border-radius: 0.25rem !important; /* Ensure consistent border-radius */
+    margin: 0; /* Remove margin if using gap */
+  }
+  
+  /* Reset some Bootstrap button group styles for mobile grid layout */
+  /* These might not be necessary if using grid gap effectively */
+  .btn-group > .btn:not(:first-child),
+  .btn-group > .btn-group:not(:first-child) > .btn {
+    border-top-left-radius: 0.25rem;
+    border-bottom-left-radius: 0.25rem;
+  }
+  
+  .btn-group > .btn:not(:last-child):not(.dropdown-toggle),
+  .btn-group > .btn-group:not(:last-child) > .btn {
+    border-top-right-radius: 0.25rem;
+    border-bottom-right-radius: 0.25rem;
+  }
+}
+
+/* Extra small screens for map controls */
+@media (max-width: 575.98px) {
+  .map-controls .btn-group {
+    grid-template-columns: 1fr; /* Stack buttons fully on very small screens */
+  }
+  
+  /* Enhanced touch targets */
+  .btn, button, .nav-link, select, input[type="radio"], input[type="checkbox"] {
+    min-height: 44px; /* Accessibility standard for touch targets */
+    min-width: 44px;
+  }
+  
+  /* Improved form elements */
+  select, input, textarea {
+    font-size: 16px !important; /* Prevents iOS zoom on focus */
+  }
+  
+  /* Reduce visual density */
+  .parameter-group, .effect-card, .impact-visual {
+    margin-bottom: 0.75rem;
+    padding: 0.75rem;
+  }
+}
+
+/* Very small screens optimization (iPhone SE, Galaxy Fold, etc.) */
+@media (max-width: 374.98px) {
+  html {
+    font-size: 14px; /* Base size reduction for very small screens */
+  }
+  
+  .container {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  
+  .main-title {
+    font-size: 1.5rem;
+  }
+  
+  .description-text {
+    font-size: 0.9rem;
+  }
+  
+  .dynamic-value {
+    font-size: 1rem !important;
+  }
+  
+  /* Ultra-compact controls */
+  .nav-link {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
+  }
+  
+  /* Extremely compact forms */
+  .row.g-4 {
+    --bs-gutter-y: 0.5rem;
+    --bs-gutter-x: 0.5rem;
+  }
+  
+  /* Map height adjustment */
+  #map {
+    height: 250px;
+  }
+}
+
+/* Device orientation adjustments */
+@media screen and (orientation: landscape) and (max-height: 500px) {
+  #map {
+    height: 200px; /* Shorter map on landscape with limited height */
+  }
+  
+  .impact-timeline {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    width: 100%;
+  }
+  
+  .timeline-step {
+    margin-bottom: 10px;
+  }
+}
+
+/* Add new media query for low-height landscape devices */
+@media (max-height: 700px) and (orientation: landscape) {
+  #map {
+    height: 400px !important;
+  }
+  
+  .parameter-group {
+    padding: 0.5rem !important;
+  }
+}
+
+/* High pixel density screens */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .ntua-logo {
+    image-rendering: -webkit-optimize-contrast; /* Sharper logo on retina displays */
+  }
+}
+
+/* Performance optimization */
+/* .windows-platform {
+  transform: scale(0.9);
+  transform-origin: top center;
+  will-change: transform;
+}
+
+.windows-platform[style*="zoom"] {
+  transform: none;
+} */
+
+/* Touch enhancements for all mobile devices */
+@media (hover: none) and (pointer: coarse) {
+  /* Increase hit areas for all interactive elements */
+  a, button, .btn, .nav-link, select, label {
+    padding: 0.5rem 0.75rem;
+    margin: 0.25rem 0;
+  }
+  
+  /* Fix for iOS Safari 100vh issue */
+  .full-height {
+    height: -webkit-fill-available;
+  }
+  
+  /* Improve scrolling performance */
+  .nav-tabs, .overflow-auto, body {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+  
+  /* Prevent sticky hover states */
+  .btn:hover, a:hover {
+    transition: none !important;
+  }
+
+  /* Remove any decorative lines from subtitle elements on mobile */
+  .description-text, .main-title + *, h1 + *, .subtitle {
+    text-decoration: none !important;
+    border-bottom: none !important;
+    border-top: none !important;
+    box-shadow: none !important;
+    background-image: none !important;
+  }
+}
+
+/* Reduce motion for users with this preference */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0.001ms !important;
+    animation-duration: 0.001ms !important;
+  }
+}
+
+/* Windows platform scaling - improved implementation */
+/* body.windows-platform { */
+/* zoom: 90%; */
+/* -ms-zoom: 0.9; */
+/* -webkit-zoom: 0.9; */
+/* } */
+
+/* Fallback for browsers without zoom support */
+/* @supports not (zoom: 0.9) { */
+/* body.windows-platform { */
+/* transform: scale(0.9); */
+/* transform-origin: top center; */
+/* width: 111.11%; / * 100% ÷ 0.9 to compensate for scaling * / */
+/* height: 111.11%; */
+/* margin-left: 0; */
+/* overflow-x: hidden; */
+/* } */
+/* } */
+
+/* Ensure content fits properly at smaller scales */
+/* @media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) { */
+/* IE-specific adjustments */
+/* body.windows-platform { */
+/* width: 111.11%; */
+/* zoom: 90%; */
+/* } */
+/* } */
+
+/* Footer Styles */
+.footer {
+  flex-shrink: 0;
+  background: rgba(30, 30, 30, 0.9);
+  color: #ccc;
+  padding: 20px 0;
+  border-top: 1px solid rgba(255, 107, 53, 0.3);
+  position: relative;
+  width: 100%;
+}
+
+.footer a {
+  color: #ff6b35;
+  text-decoration: none;
+}
+
+.footer a:hover {
+  text-decoration: underline;
+}
+
+/* Ensure content doesn't get hidden behind footer */
+.container.py-5 {
+  flex: 1 0 auto;
+}
+
+/* Mobile adjustments */
+@media (max-width: 767.98px) {
+  .footer {
+    font-size: 0.8rem;
+    padding: 15px 0;
+  }
+  
+  .container.py-5 {
+    padding-bottom: 1rem !important;
+  }
+}
+
+/* Author Name Style */
+.author-name {
+  color: #ff6b35;
+  font-weight: 600;
+  font-size: 1.1em;
+  text-shadow: 0 0 10px rgba(255, 107, 53, 0.3);
+  letter-spacing: 0.5px;
+}
+
+/* Disable zoom on tablet landscape to fix click alignment */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+    html {
+        zoom: 1 !important; /* Disable zoom on tablet landscape to fix click alignment */
+    }
+}

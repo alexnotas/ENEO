@@ -1,0 +1,37 @@
+/* Interactive Map Styling */
+#map {
+  /* Styles for the Leaflet map container. */
+  height: 400px; /* Defines the map's height. */
+  border-radius: 20px; /* Rounded corners, matching card styles. */
+  margin-bottom: 1.5rem; /* Space below the map. */
+}
+
+/* Map Controls Styling (Zone Type Selector) */
+.map-controls {
+  /* Styles for the container of map control buttons (e.g., zone type radio buttons). */
+  background: var(--card-bg); /* Matches card background. */
+  padding: 15px;
+  border-radius: 10px; /* Rounded corners. */
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* Subtle shadow. */
+  border: 1px solid rgba(255, 107, 53, 0.15); /* Optional subtle border. */
+  margin-top: 1rem; /* Space above the controls. */
+}
+
+.btn-group {
+  /* Styles for button groups, ensuring they span full width and center content. */
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* Leaflet Map Popup Styling */
+.leaflet-popup-content-wrapper {
+  /* Styles for the content wrapper of map popups. */
+  background: var(--card-bg); /* Matches card background. */
+  color: var(--text-primary); /* Text color within popups. */
+}
+
+.leaflet-popup-tip {
+  /* Styles for the tip/arrow of map popups. */
+  background: var(--card-bg); /* Matches card background. */
+}

@@ -1,0 +1,132 @@
+/* Primary Button Styling */
+.btn-primary {
+  /* Styles for the main action buttons (e.g., "Run Simulation"). */
+  background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+  background-size: 200% auto; /* For gradient animation on hover */
+  border: none;
+  font-weight: bold;
+  letter-spacing: 1px;
+  padding: 0.75rem 1.5rem; /* Added padding for better touch targets */
+  border-radius: 8px; /* Consistent border-radius */
+  color: white;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-position 0.4s ease;
+}
+
+.btn-primary:hover {
+  /* Hover effect for primary buttons: slight lift and shadow. */
+  transform: translateY(-3px) scale(1.02); /* Enhanced lift and scale */
+  box-shadow: 0 6px 18px rgba(255, 107, 53, 0.45);
+  background-position: right center; /* Change gradient direction */
+}
+
+.btn-primary:active {
+  transform: translateY(-1px) scale(0.99); /* Press down effect */
+  box-shadow: 0 3px 10px rgba(255, 107, 53, 0.3);
+  background-position: left center; /* Optional: revert gradient or change further */
+}
+
+/* "Generate NEO" Button Styling */
+.btn-generate-neo {
+  /* Specific styles for the "Generate a NEO" button. */
+  background: linear-gradient(45deg, var(--secondary-color), var(--primary-color)); /* Reversed gradient. */
+  border: none;
+  font-weight: bold;
+  letter-spacing: 1px;
+  transition: transform 0.2s ease;
+  color: white; /* Ensures text is white. */
+}
+
+.btn-generate-neo:hover {
+  /* Hover effect for the "Generate NEO" button. */
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 158, 53, 0.4);
+  color: white; /* Ensures text remains white on hover. */
+}
+
+/* Outline Primary Button Styling (used in map controls) */
+.btn-outline-primary {
+  /* Styles for outline-style buttons. */
+  background: var(--card-bg); /* Matches card background. */
+  color: var(--text-primary); /* Text color. */
+  border-color: var(--primary-color); /* Border using primary accent color. */
+}
+
+.btn-outline-primary:hover,
+.btn-check:checked + .btn-outline-primary {
+  /* Styles for hovered or checked outline buttons. */
+  background: var(--primary-color); /* Fills with primary accent color. */
+  color: white; /* Text becomes white. */
+  border-color: var(--primary-color); /* Border remains primary accent color. */
+}
+
+/* About Button Styling */
+.about-btn {
+  background: transparent;
+  border: 1px solid var(--primary-color);
+  color: var(--text-primary);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s ease-in-out;
+}
+
+.about-btn:hover {
+  background-color: var(--primary-color);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+/* NASA Button Styling */
+.btn-nasa {
+  background: linear-gradient(135deg, var(--nasa-blue) 0%, var(--nasa-blue-600) 50%, var(--nasa-blue) 100%);
+  background-size: 300% 300%;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(11, 61, 145, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.25s ease, background-position 0.6s ease;
+}
+
+.btn-nasa:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(11, 61, 145, 0.45);
+  background-position: 100% 0%;
+}
+
+.btn-nasa:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(11, 61, 145, 0.3);
+  background-position: 50% 50%;
+}
+
+.btn-nasa:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 0.25rem rgba(252, 61, 33, 0.35); /* NASA red focus ring */
+}
+
+.btn-nasa .mdi {
+  margin-right: 0.45rem;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+  opacity: 0.95;
+}
+
+.btn-nasa:hover .mdi {
+  transform: translateX(2px) rotate(10deg);
+  opacity: 1;
+}
+
+.btn-nasa:disabled,
+.btn-nasa[disabled] {
+  opacity: 0.75;
+  cursor: not-allowed;
+  filter: saturate(0.9);
+}
+
+/* Ensure spinner matches the button color while loading */
+.btn-nasa .spinner-border {
+  color: #fff;
+  border-color: currentColor transparent currentColor transparent;
+}

@@ -1,0 +1,77 @@
+/* Lead Text Styling Update */
+.lead.text-muted {
+  /* Overrides Bootstrap's muted lead style to ensure visibility. */
+  color: #ffffff !important;
+}
+
+.text-white {
+  /* Utility class to force text color to white. */
+  color: #ffffff !important;
+}
+
+.text-highlight-orange {
+  color: var(--primary-color) !important; /* Using primary orange color */
+}
+
+/* Background Utility Classes (Bootstrap overrides or additions) */
+.bg-success { background-color: #198754 !important; }
+.bg-warning { background-color: #ffc107 !important; }
+.bg-danger  { background-color: #dc3545 !important; }
+
+/* Lead Text with Bold Weight Styling */
+.lead.fw-bold {
+  /* Styles for lead paragraphs that are also bold. */
+  letter-spacing: 0.03em;
+  font-family: 'Orbitron', sans-serif; /* Uses heading font. */
+  margin-bottom: 0.5rem;
+  color: #6c757d; /* Muted text color (Bootstrap default). */
+}
+
+/* Effect-specific text colors for the About modal */
+.text-effect-crater { 
+  color: #9E9E9E; 
+  font-weight: 600; 
+  text-shadow: 0 0 8px rgba(158, 158, 158, 0.5);
+}
+.text-effect-overpressure { 
+  color: #26C6DA; 
+  font-weight: 600; 
+  text-shadow: 0 0 8px rgba(38, 198, 218, 0.5);
+}
+.text-effect-wind { 
+  color: #42A5F5; 
+  font-weight: 600; 
+  text-shadow: 0 0 8px rgba(66, 165, 245, 0.5);
+}
+.text-effect-thermal { 
+  color: #FFA726; 
+  font-weight: 600; 
+  text-shadow: 0 0 8px rgba(255, 167, 38, 0.5);
+}
+.text-effect-seismic { 
+  color: #EF5350; 
+  font-weight: 600; 
+  text-shadow: 0 0 8px rgba(239, 83, 80, 0.6);
+}
+.text-effect-ejecta { 
+  color: #A1887F; 
+  font-weight: 600; 
+  text-shadow: 0 0 8px rgba(161, 136, 127, 0.5);
+}
+.text-effect-vulnerability { 
+  color: #EF5350; /* Red */
+  font-weight: 600; 
+  text-shadow: 0 0 8px rgba(239, 83, 80, 0.6); 
+}
+
+.modal-backdrop {
+  z-index: 10500 !important; /* Ensure backdrop is below modal */
+}
+
+#aboutModal {
+  z-index: 10600 !important; /* Higher than backdrop */
+}
+
+#aboutModal .modal-dialog {
+  z-index: 10610 !important; /* Higher than modal background */
+}
