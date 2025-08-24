@@ -76,3 +76,57 @@
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
 }
+
+/* NASA Button Styling */
+.btn-nasa {
+  background: linear-gradient(135deg, var(--nasa-blue) 0%, var(--nasa-blue-600) 50%, var(--nasa-blue) 100%);
+  background-size: 300% 300%;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(11, 61, 145, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.25s ease, background-position 0.6s ease;
+}
+
+.btn-nasa:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(11, 61, 145, 0.45);
+  background-position: 100% 0%;
+}
+
+.btn-nasa:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(11, 61, 145, 0.3);
+  background-position: 50% 50%;
+}
+
+.btn-nasa:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 0.25rem rgba(252, 61, 33, 0.35); /* NASA red focus ring */
+}
+
+.btn-nasa .mdi {
+  margin-right: 0.45rem;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+  opacity: 0.95;
+}
+
+.btn-nasa:hover .mdi {
+  transform: translateX(2px) rotate(10deg);
+  opacity: 1;
+}
+
+.btn-nasa:disabled,
+.btn-nasa[disabled] {
+  opacity: 0.75;
+  cursor: not-allowed;
+  filter: saturate(0.9);
+}
+
+/* Ensure spinner matches the button color while loading */
+.btn-nasa .spinner-border {
+  color: #fff;
+  border-color: currentColor transparent currentColor transparent;
+}

@@ -8,6 +8,10 @@
   --card-bg: #2d2d2d; /* Background color for card-like elements. */
   --text-primary: #f5f5f5; /* Main text color, ensuring readability on dark backgrounds. */
   --eneo-gradient: linear-gradient(45deg, #f5a623, #ff4b4b); /* Gradient for the "ENEO" title text. */
+
+  --nasa-blue: #0B3D91;
+  --nasa-blue-600: #1C5DB6;
+  --nasa-red: #FC3D21;
 }
 
 /* Base Element Styling */

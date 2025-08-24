@@ -314,7 +314,8 @@
 
   .btn-primary, 
   .btn-generate-neo, 
-  .btn-outline-secondary {
+  .btn-outline-secondary,
+  .btn-nasa { /* Added NASA button to match Run Simulation on mobile */
     font-size: 0.9rem;
     padding: 0.65rem 0.9rem;
   }
