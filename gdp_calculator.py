@@ -1,63 +1,86 @@
+"""
+GDP Calculator Module for ENEO Asteroid Impact Simulation System
+
+This module handles economic damage calculations for asteroid impact simulations by:
+- Loading and processing global GDP per capita data from World Bank datasets
+- Providing country name normalization and matching capabilities
+- Calculating economic impact based on casualty estimates and productivity loss
+
+The economic damage model estimates financial losses as:
+casualties × GDP_per_capita × productivity_years_factor
+
+Key Features:
+- Robust country name matching across different naming conventions
+- Multiple fallback strategies for country identification (codes, names, fuzzy matching)
+- Efficient caching of processed data for repeated lookups
+- Comprehensive logging for data quality monitoring
+
+Data Sources:
+- World Bank GDP per capita data (NY.GDP.PCAP.CD indicator)
+- Country code mapping files for geographic standardization
+"""
+
 import pandas as pd
 import os
 import numpy as np
 from pathlib import Path
 import logging
 
-# Configure logging for monitoring data loading and processing steps.
+# Configure logging for monitoring data loading and processing steps
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Define file paths for GDP data (from the World Bank) and a custom country code mapping file.
+# Define file paths for GDP data and country code mappings.
 GDP_FILE = r"/home/debian/flaskapp/maps/API_NY.GDP.PCAP.CD_DS2_en_csv_v2_85121.csv"
 MAPPING_FILE = r"/home/debian/flaskapp/maps/excel.xlsx"
 
 # Global variables to store loaded and processed dataframes and lookup dictionaries.
-# These are populated by load_gdp_data() to avoid redundant file I/O on subsequent calls.
+# These are populated by load_gdp_data() to avoid redundant file operations.
 merged_df = None
 name_variations = {}
 code_to_row = {}
 
-# A comprehensive dictionary to reconcile country name differences between various data sources.
-# This is crucial for merging datasets that use different naming conventions or abbreviations.
+# Country name mappings to reconcile differences between datasets.
+# This dictionary helps standardize country names from various sources.
 COUNTRY_NAME_MAPPINGS = {
     "slovak republic": "slovakia",
-    "united states": "united states of america", # Standardizes common name to its formal name.
-    "united kingdom": "united kingdom of great britain and northern ireland", # Standardizes to the long form.
+    "united states": "united states of america", # Standardizing to a common long form
+    "united kingdom": "united kingdom of great britain and northern ireland", # Standardizing
     "russia": "russian federation",
-    "ivory coast": "côte d'ivoire", # Handles special characters and common English names.
+    "ivory coast": "côte d'ivoire", # Handling special characters and common names
     "czechia": "czech republic",
     "north korea": "korea, democratic people's republic of",
     "south korea": "korea, republic of",
     "syria": "syrian arab republic",
-    "republic of the congo": "congo", # Distinguishes between the two Congo republics.
+    "republic of the congo": "congo", # Distinguishing between Congos
     "democratic republic of the congo": "congo, the democratic republic of the",
-    "eswatini": "swaziland", # Reflects recent country name changes.
+    "eswatini": "swaziland", # Reflecting name changes
     "saint barthélemy": "saint barthelemy",
-    "saint lucia": "st. lucia", # Handles common abbreviations.
+    "saint lucia": "st. lucia", # Abbreviation handling
     "saint kitts and nevis": "st. kitts and nevis",
     "saint vincent and the grenadines": "st. vincent and the grenadines",
-    "taiwan": "taiwan, china", # Addresses geopolitical naming conventions found in datasets.
+    "taiwan": "taiwan, china", # Addressing geopolitical naming conventions
     "laos": "lao pdr",
     "hong kong": "hong kong sar, china",
     "macau": "macao sar, china",
-    "gambia": "gambia, the", # Standardizes names that sometimes include "The".
+    "gambia": "gambia, the", # Handling "The" in names
     "bahamas": "bahamas, the",
-    "uae": "united arab emirates", # Expands common acronyms.
+    "uae": "united arab emirates", # Acronym expansion
     "uk": "united kingdom",
     "usa": "united states",
     "brunei": "brunei darussalam",
-    "vietnam": "vietnam", # Ensures consistency for different spellings.
+    "vietnam": "vietnam", # Ensuring consistency for variations
     "viet nam": "vietnam",
     "micronesia": "micronesia, fed. sts.",
-    "turkey": "turkiye", # Reflects recent official name change.
-    "palestine": "west bank and gaza", # Maps to the common representation in economic datasets.
-    "jersey": "channel islands", # Groups related territories for broader matching.
+    # Additional mappings for countries often missing or named differently:
+    "turkey": "turkiye", # Reflecting recent name change
+    "palestine": "west bank and gaza", # Common representation in datasets
+    "jersey": "channel islands", # Grouping related territories
     "guernsey": "channel islands",
-    "åland": "aland islands", # Handles special characters and diacritics.
-    "faeroe is.": "faroe islands", # Standardizes abbreviations and common names.
+    "åland": "aland islands", # Handling special characters
+    "faeroe is.": "faroe islands", # Abbreviation and common name
     "faeroe islands": "faroe islands", 
-    "w. sahara": "western sahara", # Expands abbreviation.
+    "w. sahara": "western sahara", # Abbreviation
     "gibraltar": "gibraltar"
 }
 
@@ -79,10 +102,10 @@ def normalize_country_name(name):
     if pd.isna(name) or not name:
         return ""
     
-    # Convert to lowercase and remove leading/trailing whitespace for consistent processing.
+    # Convert to lowercase and remove leading/trailing whitespace.
     norm_name = name.lower().strip()
     
-    # Define common words and patterns to remove or standardize for better matching.
+    # Define common words and patterns to remove or standardize.
     replacements = {
         "the ": "",
         ", the": "",
@@ -100,21 +123,20 @@ def normalize_country_name(name):
         "commonwealth of ": "",
         "grand duchy of ": "",
         "principality of ": "",
-        " and ": " & ", # Standardize conjunctions.
-        "-": " ",       # Replace hyphens with spaces.
-        ".": "",        # Remove periods.
-        ",": ""         # Remove commas.
+        " and ": " & ", # Standardize conjunctions
+        "-": " ",       # Replace hyphens with spaces
+        ".": "",        # Remove periods
+        ",": ""         # Remove commas
     }
     
-    # Apply all defined replacements to the name.
     for old, new in replacements.items():
         norm_name = norm_name.replace(old, new)
     
-    # Apply specific, predefined mappings for known difficult-to-standardize variations.
+    # Apply specific predefined mappings for known variations.
     if norm_name in COUNTRY_NAME_MAPPINGS:
         return COUNTRY_NAME_MAPPINGS[norm_name]
     
-    return norm_name.strip() # Return the cleaned name, ensuring no trailing spaces.
+    return norm_name.strip() # Ensure no leading/trailing spaces after replacements
 
 def load_gdp_data():
     """
@@ -135,89 +157,92 @@ def load_gdp_data():
     """
     global merged_df, name_variations, code_to_row
     
-    # If data is already loaded, return the existing dataframe to avoid reprocessing.
+    # If data is already loaded, return the existing dataframe.
     if merged_df is not None:
         return merged_df
     
     try:
         logger.info("Loading GDP per capita data...")
-        # Load GDP per capita data, skipping the initial metadata rows in the World Bank CSV.
-        gdp_df = pd.read_csv(GDP_FILE, skiprows=4)
+        # Load GDP per capita data from the World Bank CSV.
+        gdp_df = pd.read_csv(GDP_FILE, skiprows=4) # Skip metadata rows
         
         # Filter for the specific "GDP per capita (current US$)" indicator.
         gdp_df = gdp_df[gdp_df["Indicator Code"] == "NY.GDP.PCAP.CD"].copy()
         
         # Define the range of years to search for the latest GDP data.
-        years = [str(year) for year in range(1960, 2024)]
+        years = [str(year) for year in range(1960, 2024)] # Covers 1960 through 2023
         
-        # Helper function to extract the most recent non-null GDP value and its year from a row.
+        # Function to extract the most recent non-null GDP value and its year.
         def get_latest_gdp(row):
-            for year in reversed(years): # Iterate from most recent to oldest.
+            for year in reversed(years): # Iterate from most recent to oldest
                 val = row.get(year)
                 if pd.notnull(val):
                     return pd.Series({"GDP_value": val, "GDP_year": year})
-            return pd.Series({"GDP_value": pd.NA, "GDP_year": pd.NA}) # Return NA if no data is found.
+            return pd.Series({"GDP_value": pd.NA, "GDP_year": pd.NA}) # Return NA if no data found
         
         # Apply the function to find the latest GDP for each country.
         gdp_df[["GDP_value", "GDP_year"]] = gdp_df.apply(get_latest_gdp, axis=1)
         
-        # Retain only essential columns from the GDP data for a cleaner dataframe.
+        # Retain only essential columns from the GDP data.
         gdp_df = gdp_df[["Country Code", "Country Name", "GDP_value", "GDP_year"]].copy()
         
-        # Create a normalized name column for improved matching with other datasets.
+        # Create a normalized name column for improved matching.
         gdp_df["Normalized_Name"] = gdp_df["Country Name"].apply(normalize_country_name)
         
-        # Load the country mapping Excel file if it exists to enrich the data.
+        # Load the country mapping Excel file if it exists.
         if os.path.exists(MAPPING_FILE):
             try:
                 logger.info(f"Loading country code mappings from {MAPPING_FILE}...")
                 mapping_df = pd.read_excel(MAPPING_FILE)
                 
                 # Add a normalized name column to the mapping dataframe for consistent merging.
-                if "NAME" in mapping_df.columns:
+                if "NAME" in mapping_df.columns: # Check for common column names
                     mapping_df["Normalized_Name"] = mapping_df["NAME"].apply(normalize_country_name)
                 elif "CNTRY_NAME" in mapping_df.columns:
                     mapping_df["Normalized_Name"] = mapping_df["CNTRY_NAME"].apply(normalize_country_name)
                 
-                # Initial merge: Join mapping data with GDP data using ISO_A3 country codes.
+                # Initial merge: Attempt to join mapping data with GDP data using ISO_A3 country codes.
                 merged_df = pd.merge(
                     mapping_df, 
                     gdp_df,
                     left_on="ISO_A3", 
-                    right_on="Country Code", # The World Bank uses "Country Code" for ISO codes.
-                    how="left" # Keep all countries from the mapping file, even if no GDP match is found.
+                    right_on="Country Code", # World Bank uses "Country Code" for ISO codes
+                    how="left" # Keep all countries from the mapping file
                 )
                 
                 logger.info(f"Initial merge (ISO_A3) complete. Columns: {list(merged_df.columns)}")
                     
-                # Standardize the 'Normalized_Name' column after merging, as pandas may create _x and _y suffixes.
+                # Standardize the 'Normalized_Name' column after merging.
+                # Pandas appends _x and _y to duplicate column names during merges.
                 if "Normalized_Name_x" not in merged_df.columns and "Normalized_Name" in merged_df.columns:
                     merged_df["Normalized_Name_x"] = merged_df["Normalized_Name"]
                 elif "Normalized_Name" not in merged_df.columns and "Normalized_Name_x" in merged_df.columns:
-                    merged_df["Normalized_Name"] = merged_df["Normalized_Name_x"]
+                    merged_df["Normalized_Name"] = merged_df["Normalized_Name_x"] # Use _x if _y is from gdp_df
                 
-                # Iterative merging for countries still missing GDP data using fallback keys.
-                
+                # Iterative merging for countries still missing GDP data:
+                # Strategy: Try WB_A2, then WB_A3, then normalized name matching.
+
                 # Attempt 1: Merge using WB_A2 codes for remaining unmatched entries.
                 missing_gdp_mask = merged_df["GDP_value"].isna()
                 if missing_gdp_mask.any() and "WB_A2" in merged_df.columns:
                     logger.info("Attempting to match remaining countries using WB_A2 codes...")
                     subset_missing_wb_a2 = merged_df[missing_gdp_mask].copy()
                     wb_a2_matches = pd.merge(
-                        subset_missing_wb_a2[["WB_A2", "FID", "ISO_A3", "Normalized_Name_x"]],
-                        gdp_df,
+                        subset_missing_wb_a2[["WB_A2", "FID", "ISO_A3", "Normalized_Name_x"]], # Select relevant columns
+                        gdp_df, # Merge with the original GDP dataframe
                         left_on="WB_A2",
                         right_on="Country Code",
-                        how="inner" # Only keep successful matches.
+                        how="inner" # Only keep successful matches
                     )
                     # Update the main merged dataframe with these new matches.
                     for _, match_row in wb_a2_matches.iterrows():
+                        # Find the original row in merged_df to update
                         idx_to_update = merged_df[
                             (merged_df["ISO_A3"] == match_row["ISO_A3"]) & 
-                            (merged_df["GDP_value"].isna())
+                            (merged_df["GDP_value"].isna()) # Ensure we only update rows that were missing GDP
                         ].index
                         if not idx_to_update.empty:
-                            merged_df.loc[idx_to_update, "GDP_value"] = match_row["GDP_value_y"]
+                            merged_df.loc[idx_to_update, "GDP_value"] = match_row["GDP_value_y"] # _y from gdp_df
                             merged_df.loc[idx_to_update, "GDP_year"] = match_row["GDP_year_y"]
                             merged_df.loc[idx_to_update, "Country Name"] = match_row["Country Name_y"]
                 
@@ -267,24 +292,26 @@ def load_gdp_data():
                             merged_df.loc[idx, "GDP_year"] = gdp_info["GDP_year"]
                             merged_df.loc[idx, "Country Name"] = gdp_info["Country_Name"]
                 
-                # Populate lookup dictionaries for faster access in the `lookup_gdp` function.
+                # Populate lookup dictionaries for faster access in `lookup_gdp`.
+                # These dictionaries map various identifiers (FID, ISO codes, names) to country data rows.
                 for _, row_data in merged_df.iterrows():
-                    if pd.notna(row_data.get("FID")):
-                        fid_key = str(int(row_data["FID"]))
-                        if pd.notna(row_data.get("GDP_value")):
+                    if pd.notna(row_data.get("FID")): # Ensure FID exists and is not NaN
+                        fid_key = str(int(row_data["FID"])) # Convert FID to string key
+                        if pd.notna(row_data.get("GDP_value")): # Store only if GDP data is present
                             code_to_row[fid_key] = row_data
                     
-                    # Map various country codes (ISO, World Bank) to the row data.
+                    # Map various country codes to the row data.
                     for code_key_column in ["ISO_A3", "WB_A2", "WB_A3"]:
                         if pd.notna(row_data.get(code_key_column)):
                             code_to_row[row_data[code_key_column]] = row_data
                     
-                    # Map normalized names to the row data for lookup by name.
-                    if pd.notna(row_data.get("NAME")):
+                    # Map normalized names (from mapping file and GDP file) to the row data.
+                    # This allows lookup by different name variations.
+                    if pd.notna(row_data.get("NAME")): # Original name from mapping file
                         normalized_map_name = normalize_country_name(row_data["NAME"])
                         name_variations[normalized_map_name] = row_data
                     
-                    if pd.notna(row_data.get("Country Name")):
+                    if pd.notna(row_data.get("Country Name")): # Name from World Bank GDP data
                         normalized_gdp_name = normalize_country_name(row_data["Country Name"])
                         name_variations[normalized_gdp_name] = row_data
                 
@@ -294,7 +321,7 @@ def load_gdp_data():
             except Exception as e:
                 logger.error(f"Error during data merging process: {e}")
                 # Fallback: If merging fails, use only the loaded GDP data.
-                merged_df = gdp_df
+                merged_df = gdp_df # Ensure merged_df is at least the gdp_df
                 return merged_df
         else:
             logger.warning(f"Country mapping file {MAPPING_FILE} not found. Using only GDP data.")
@@ -321,20 +348,20 @@ def lookup_gdp(country_code=None, country_name=None, fid=None):
         tuple: A tuple containing (gdp_per_capita, gdp_year).
                Returns (None, None) if the country or its GDP data cannot be found.
     """
-    # Ensure data is loaded before attempting any lookup.
+    # Ensure data is loaded before attempting lookup.
     if merged_df is None:
         load_gdp_data()
-        if merged_df is None: # If loading failed critically.
+        if merged_df is None: # If loading failed critically
             logger.error("GDP data could not be loaded for lookup.")
             return None, None
 
-    # Attempt lookup by FID first, as it's a reliable unique identifier from the mapping file.
+    # Attempt lookup by FID first, as it's often a reliable unique identifier.
     if fid:
         fid_str_key = str(fid)
         if fid_str_key in code_to_row:
             row = code_to_row[fid_str_key]
             if pd.notna(row.get("GDP_value")):
-                return row["GDP_value"], row.get("GDP_year")
+                return row["GDP_value"], row.get("GDP_year") # Use .get for GDP_year for safety
     
     # Attempt lookup by country code (ISO_A3, WB_A2, WB_A3).
     if country_code and country_code in code_to_row:
@@ -342,7 +369,7 @@ def lookup_gdp(country_code=None, country_name=None, fid=None):
         if pd.notna(row.get("GDP_value")):
             return row["GDP_value"], row.get("GDP_year")
     
-    # Attempt lookup by normalized country name using the pre-built dictionary.
+    # Attempt lookup by normalized country name.
     if country_name:
         normalized_name_key = normalize_country_name(country_name)
         if normalized_name_key in name_variations:
@@ -350,19 +377,27 @@ def lookup_gdp(country_code=None, country_name=None, fid=None):
             if pd.notna(row.get("GDP_value")):
                 return row["GDP_value"], row.get("GDP_year")
         
-        # Fallback: Direct search in the merged dataframe using normalized names.
+        # Fallback: Direct search in the merged_df using normalized names.
+        # This handles cases where name_variations might not be perfectly populated.
         if merged_df is not None:
-            norm_col_to_check = "Normalized_Name_x" if "Normalized_Name_x" in merged_df.columns else "Normalized_Name"
+            # Determine which normalized name column to use from merged_df.
+            # It could be 'Normalized_Name_x' (from mapping) or 'Normalized_Name' (from gdp_df).
+            norm_col_to_check = None
+            if "Normalized_Name_x" in merged_df.columns:
+                norm_col_to_check = "Normalized_Name_x"
+            elif "Normalized_Name" in merged_df.columns: # Check the one from gdp_df if _x isn't there
+                norm_col_to_check = "Normalized_Name"
             
-            if norm_col_to_check in merged_df.columns:
+            if norm_col_to_check:
                 matches = merged_df[merged_df[norm_col_to_check] == normalized_name_key]
                 if not matches.empty:
                     first_match = matches.iloc[0]
                     if pd.notna(first_match.get("GDP_value")):
                         return first_match["GDP_value"], first_match.get("GDP_year")
             
-            # Final attempt: Match against the raw 'Country Name' column from the World Bank data.
+            # Final attempt: Match against the 'Country Name' column from the World Bank data.
             if "Country Name" in merged_df.columns:
+                # Normalize the 'Country Name' column on-the-fly for comparison.
                 matches_on_gdp_name = merged_df[merged_df["Country Name"].apply(normalize_country_name) == normalized_name_key]
                 if not matches_on_gdp_name.empty:
                     first_match_gdp_name = matches_on_gdp_name.iloc[0]
@@ -370,17 +405,23 @@ def lookup_gdp(country_code=None, country_name=None, fid=None):
                         return first_match_gdp_name["GDP_value"], first_match_gdp_name.get("GDP_year")
                         
     # As a last resort, attempt fuzzy matching (partial string containment).
+    # This is less precise and should be used cautiously.
     if country_name and merged_df is not None:
         normalized_name_to_search = normalize_country_name(country_name)
-        if len(normalized_name_to_search) > 3: # Avoid broad matches for short strings.
+        if len(normalized_name_to_search) > 3: # Avoid overly broad matches for short strings
             
-            fuzzy_check_columns = [col for col in ["Normalized_Name_x", "Normalized_Name", "Country Name"] if col in merged_df.columns]
+            # Define columns to check for fuzzy matching.
+            fuzzy_check_columns = []
+            if "Normalized_Name_x" in merged_df.columns: fuzzy_check_columns.append("Normalized_Name_x")
+            if "Normalized_Name" in merged_df.columns: fuzzy_check_columns.append("Normalized_Name") # From gdp_df
+            if "Country Name" in merged_df.columns: fuzzy_check_columns.append("Country Name") # Raw name from gdp_df
             
             for _, db_row in merged_df.iterrows():
                 for col_name in fuzzy_check_columns:
                     db_entry_name = db_row.get(col_name)
                     if pd.notna(db_entry_name) and pd.notna(db_row.get("GDP_value")):
-                        current_db_norm_name = normalize_country_name(str(db_entry_name))
+                        # Normalize the database entry name if it's the raw 'Country Name'.
+                        current_db_norm_name = normalize_country_name(str(db_entry_name)) if col_name == "Country Name" else str(db_entry_name)
                         
                         # Check for containment in either direction.
                         if (normalized_name_to_search in current_db_norm_name) or \
@@ -416,11 +457,11 @@ def calculate_economic_damage(countries_data, productivity_years=1):
             - "countries_without_data" (int): Number of countries lacking GDP data.
             - "note" (str): A brief note about the calculation method.
     """
-    # Ensure the necessary GDP and mapping data is loaded before calculation.
+    # Ensure GDP data is loaded.
     load_gdp_data()
     if merged_df is None:
         logger.error("Cannot calculate economic damage: GDP data failed to load.")
-        return {
+        return { # Return a structure indicating failure
             "countries": [], "total_economic_damage": 0, "countries_with_data": 0,
             "countries_without_data": len(countries_data),
             "note": "Error: GDP data could not be loaded."
@@ -443,19 +484,20 @@ def calculate_economic_damage(countries_data, productivity_years=1):
             "name": country_name,
             "fid": fid_val,
             "casualties": casualties_val,
-            "population": country_info.get("total_population", 0)
+            "population": country_info.get("total_population", 0) # Include population for context
         }
         
-        # Skip economic calculation if there are no casualties for this country.
+        # Skip calculation if there are no casualties for this country.
         if casualties_val <= 0:
             current_country_result.update({"gdp_per_capita": None, "gdp_year": None, "economic_damage": 0})
             damage_results.append(current_country_result)
-            continue
+            continue # Move to the next country
         
-        # Attempt to retrieve GDP data for the current country using multiple identifiers.
+        # Attempt to retrieve GDP data for the current country.
         gdp_val, gdp_yr = lookup_gdp(
             country_name=country_name, 
             fid=fid_val
+            # country_code could also be passed if available in country_info
         )
         
         if gdp_val is not None:
@@ -471,20 +513,20 @@ def calculate_economic_damage(countries_data, productivity_years=1):
             count_countries_with_gdp += 1
             logger.info(f"GDP found for {country_name} (FID: {fid_val}): ${gdp_per_capita:,.2f} (Year: {gdp_yr}). Estimated damage: ${country_economic_damage:,.2f}")
         else:
-            # Handle cases where GDP data is not found for a country.
+            # GDP data not found for this country.
             current_country_result.update({"gdp_per_capita": None, "gdp_year": None, "economic_damage": None})
             list_countries_without_gdp.append(country_name)
             logger.warning(f"No GDP data found for {country_name} (FID: {fid_val}). Cannot calculate economic damage.")
         
         damage_results.append(current_country_result)
     
-    # Log a summary of countries for which GDP data was not found.
+    # Log countries for which GDP data was not found.
     if list_countries_without_gdp:
-        countries_to_report = [country for country in list_countries_without_gdp if country is not None]
+        countries_to_report = [country if country is not None else "Unknown Country" for country in list_countries_without_gdp]
         if countries_to_report:
             logger.warning(f"Summary: GDP data was not found for the following countries: {', '.join(countries_to_report)}.")
     
-    # Sort results by economic damage in descending order for clear reporting.
+    # Sort results by economic damage in descending order for reporting.
     damage_results.sort(key=lambda x: x.get("economic_damage", 0) or 0, reverse=True)
     
     return {
