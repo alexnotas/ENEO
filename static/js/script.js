@@ -905,7 +905,7 @@ async function handleSubmit(e) {
 
     const sections = parseResultsText(data.results_text);
     populateTab("overpressureEffects", sections.airblast || []); 
-    populateTab("thermalEffects", sections.seismic_effects || []);
+    populateTab("thermalEffects", sections.thermal_effects || []);
     populateTab("seismicEffects", sections.seismic_effects || []);
     populateTab("ejectaEffects", sections.ejecta || []);
     populateTab("windEffects", sections.wind_effects || []);
