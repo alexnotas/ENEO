@@ -66,7 +66,7 @@ BURST_ALTITUDE_THRESHOLD = 1000.0
 # =============================================================================
 
 # Path to ETOPO elevation/bathymetry data file - global topographic dataset
-ETOPO_FILE_PATH = "/home/debian/flaskapp/maps/ETOPO_2022_v1_60s_N90W180_surface.tif"
+ETOPO_FILE_PATH = "/home/alexandros-linux/Επιφάνεια εργασίας/ENEO update tests/maps/ETOPO_2022_v1_60s_N90W180_surface.tif"
 
 # Water density constant (kg/m³) - standard density of seawater for tsunami calculations
 WATER_DENSITY_CONSTANT = 1000  # kg/m^3
@@ -83,7 +83,6 @@ acoustic_efficiency = 1e-8
 R_EARTH = 6371000.0
 BURST_ALTITUDE_THRESHOLD = 1000.0
 
-ETOPO_FILE_PATH = "/home/debian/flaskapp/maps/ETOPO_2022_v1_60s_N90W180_surface.tif"
 WATER_DENSITY_CONSTANT = 1000  # kg/m^3
 
 # Transition settings for altitude burst vs. regular reflection
@@ -305,15 +304,20 @@ def get_ocean_depth_from_geotiff(lat, lon, file_path=ETOPO_FILE_PATH):
                 print(f"Warning: Coordinates ({lat}, {lon}) are outside the map bounds.")
                 return None # Indicate out of bounds
 
-            # Convert geographic coordinates to raster indices
-            row, col = src.index(lon, lat)
-            
+            # Sample the raster at the requested coordinate without loading full bands
+            try:
+                sample_iter = src.sample([(lon, lat)])
+                sample = next(sample_iter)
+            except StopIteration:
+                print(f"Warning: No raster sample available at ({lat:.2f}, {lon:.2f}). Assuming land.")
+                return 0
+
             # Read elevation value from the raster at the specified location
-            elevation = src.read(1)[row, col].item()
-            
-            # Check for NoData values in the dataset
+            elevation = float(sample[0]) if sample.size else float('nan')
+
+            # Check for NoData values in the dataset (includes NaN handling)
             nodata_val = src.nodatavals[0]
-            if nodata_val is not None and elevation == nodata_val:
+            if (nodata_val is not None and elevation == nodata_val) or math.isnan(elevation):
                 print(f"Warning: Impact site at ({lat:.2f}, {lon:.2f}) is in an area with no data. Assuming land.")
                 return 0 # No data, assume land for tsunami purposes
 
@@ -324,9 +328,8 @@ def get_ocean_depth_from_geotiff(lat, lon, file_path=ETOPO_FILE_PATH):
                 return ocean_depth
             else:
                 # Positive elevation = above sea level = land
-                # print(f"Info: Impact site at ({lat:.2f}, {lon:.2f}) is on land (elevation: {elevation:.2f} m).")
                 return 0 # On land
-                
+
     except IndexError:
         # Handle coordinate transformation errors or invalid indices
         print(f"Warning: Could not retrieve data for coordinates ({lat:.2f}, {lon:.2f}). Assuming land.")

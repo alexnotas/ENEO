@@ -35,7 +35,7 @@ from thresholds import (
     # THERMAL_VULNERABILITY_THRESHOLD,     # Now handled in vulnerability_models.py
     SEISMIC_VULNERABILITY_THRESHOLD, # Retained if still used by fun_SeismicVulnerability directly or for other logic
     EJECTA_VULNERABILITY_THRESHOLD,  # Retained if still used by fun_EjectaBlanketVulnerability directly or for other logic
-    DAMAGE_CATEGORIES
+    get_blast_thresholds
 )
 # Ensure all necessary vulnerability functions are imported
 from vulnerability_models import (
@@ -43,6 +43,7 @@ from vulnerability_models import (
     fun_OverpressureVulnerability, fun_ThermRadVulnerability,
     fun_HighWindVulnerability, fun_EjectaBlanketVulnerability
 )
+from translation_utils import get_translation
 
 class AsteroidImpactSimulation:
     """
@@ -927,10 +928,10 @@ class AsteroidImpactSimulation:
         Returns:
             str: Damage category description
         """
-        for desc, threshold_value in DAMAGE_CATEGORIES:
+        for desc, threshold_value in get_blast_thresholds():
             if overpressure_pa >= threshold_value:
                 return desc
-        return "Light or no structural damage"
+        return get_translation("thresholds.fallbackMessages.lightStructuralDamage", "Light or no structural damage")
 
     def calculate_overpressure_vulnerability(self, press):
         """

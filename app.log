@@ -1,9 +1,0 @@
-nohup: ignoring input
-Traceback (most recent call last):
-  File "/home/debian/flaskapp/app.py", line 17, in <module>
-    from results import run_simulation_full
-  File "/home/debian/flaskapp/results.py", line 3, in <module>
-    from models import AsteroidImpactSimulation
-  File "/home/debian/flaskapp/models.py", line 9, in <module>
-    from thresholds import (
-ImportError: cannot import name 'DAMAGE_CATEGORIES' from 'thresholds' (/home/debian/flaskapp/thresholds.py)

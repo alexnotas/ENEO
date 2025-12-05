@@ -37,6 +37,7 @@ import json
 import math
 from gdp_calculator import calculate_economic_damage
 from utils import get_ocean_depth_from_geotiff, m_to_km
+from translation_utils import set_language
 import numpy as np
 import random
 import requests
@@ -89,10 +90,15 @@ def simulate():
         r_distance = float(data['distance'])
         lat = float(data.get('latitude', 0))    # Default: equator if not provided
         lon = float(data.get('longitude', 0))   # Default: prime meridian if not provided
+        language = data.get('language', 'en')   # Default: English if not provided
         
         # Log simulation parameters for debugging and analysis tracking
         print(f"\nSimulation Request - Coordinates: {lat:.6f}°, {lon:.6f}°")
         print(f"Parameters: D={diameter}m, ρ={density}kg/m³, v={velocity}km/s, θ={entry_angle}°")
+        print(f"Language: {language}")
+        
+        # Set the language for translations in this request
+        set_language(language)
         
         # Comprehensive input validation based on established physical constraints
         if diameter < 1:
@@ -120,6 +126,18 @@ def simulate():
         
         # Calculate affected population within each vulnerability zone
         population_data = calculate_population_in_zones(lat, lon, vulnerability_zones)
+        
+        # Add translated country names to the population data
+        if 'countries' in population_data:
+            from translation_utils import get_translation
+            for country in population_data['countries']:
+                country_name = country.get('name', '')
+                # Add translated name as a new field
+                country['translated_name'] = get_translation(
+                    f'countries.{country_name}', 
+                    country_name  # Fallback to original name
+                )
+        
         results_data['population_analysis'] = population_data
 
         # Generate country-specific visualization if population data includes country breakdown
@@ -130,6 +148,16 @@ def simulate():
             
             # Calculate economic impact based on estimated casualties and national GDP data
             economic_data = calculate_economic_damage(population_data['countries'])
+            
+            # Add translations to economic data as well
+            if 'countries' in economic_data:
+                for country in economic_data['countries']:
+                    country_name = country.get('name', '')
+                    country['translated_name'] = get_translation(
+                        f'countries.{country_name}', 
+                        country_name
+                    )
+            
             results_data['economic_analysis'] = economic_data
 
     # Generate visualization data for mapping interface
@@ -562,7 +590,7 @@ def create_polar_circle_coordinates(center_lat, center_lon, radius_km, points=72
     
     return coordinates
 
-def parse_danger_zones(section_text, lat, lon):
+def parse_danger_zones(section_text, lat, lon, section_title=None):
     """
     Extracts and categorizes information about various damage zones from the simulation's textual output.
     
@@ -582,6 +610,8 @@ def parse_danger_zones(section_text, lat, lon):
         section_text (str): The raw text segment from the simulation output describing the zones.
         lat (float): Latitude of the impact point, for generating zone coordinates.
         lon (float): Longitude of the impact point, for generating zone coordinates.
+        section_title (str, optional): Title of the section being parsed. Used as a contextual hint when
+            keyword-based classification does not yield a result.
     
     Returns:
         list: A list of parsed zone objects, each containing coordinates, description, distance, and type.
@@ -591,6 +621,28 @@ def parse_danger_zones(section_text, lat, lon):
     """
     zones = []
     lines = section_text.split('\n')
+    section_hint = section_title.lower() if section_title else ""
+    lower_section_text = section_text.lower()
+
+    section_type_hints = {
+        'airblast': ['blast', 'airblast', 'overpressure', 'ζώνες κινδύνου έκρηξης', 'υπερπίεση', 'ωστικό κύμα'],
+        'thermal': ['thermal', 'θερμ', 'πυρ', 'φωτιά'],
+        'seismic': ['seismic', 'σεισμ', 'richter', 'ρίχτερ'],
+        'wind': ['wind', 'ανέμ', 'ef', 'ανεμο'],
+        'ejecta': ['ejecta', 'εκτιναγ', 'θραυσ'],
+        'tsunami': ['tsunami', 'τσουνάμι']
+    }
+
+    thermal_keywords = ['burns', 'ignition', 'thermal', 'εγκαύματα', 'ανάφλεξη', 'θερμ', 'πυρκαγ']
+    seismic_keywords = ['σεισμικ', 'σεισμ', 'σεισμική']
+    airblast_keywords = [
+        "collapse", "distorted", "damage", "shatter", "structural",
+        "windows", "buildings", "office-type", "wall-bearing", "wood frame",
+        "κατάρρευση", "καταρρεύ", "παραμόρφωση", "παραμορφ", "ζημιά", "διαθραύση", "δομικός",
+        "παράθυρα", "κτίρια", "γραφείων", "φέρον τοίχο", "ξύλινο πλαίσιο",
+        "γέφυρ", "οχήμ", "εκτοπισ", "ανακατασκευ"
+    ]
+    tsunami_threshold_labels = [">1km", ">100m", ">10m", ">1m"]
 
     for line_content in lines:
         line = line_content.strip()
@@ -602,6 +654,7 @@ def parse_danger_zones(section_text, lat, lon):
         # Split line into description and distance range components
         description_part = line.split(':', 1)[0].strip()
         range_part_with_km = line.split(':', 1)[-1].strip()
+        lower_description = description_part.lower()
 
         determined_type_for_line = None
 
@@ -612,34 +665,42 @@ def parse_danger_zones(section_text, lat, lon):
             determined_type_for_line = 'wind'
             
         # Tsunami zones: Amplitude thresholds in tsunami context
-        elif description_part in [">1km", ">100m", ">10m", ">1m"] and "tsunami" in section_text.lower():
-             if "km" in range_part_with_km and "None" not in range_part_with_km:
+        elif description_part in tsunami_threshold_labels and "tsunami" in lower_section_text:
+            if "km" in range_part_with_km and "None" not in range_part_with_km:
                 determined_type_for_line = 'tsunami'
                 
-        # Seismic zones: Richter scale references
-        elif 'Richter' in description_part:
+        # Seismic zones: Richter scale references (English and Greek)
+        elif 'richter' in lower_description or 'ρίχτερ' in lower_description or \
+             any(keyword in lower_description for keyword in seismic_keywords):
             determined_type_for_line = 'seismic'
         
-        # Thermal zones: Heat and fire-related keywords
-        elif any(keyword.lower() in description_part.lower() for keyword in 
-                ['burns', 'ignition', 'Thermal']):
+        # Thermal zones: Heat and fire-related keywords (English and Greek)
+        elif any(keyword in lower_description for keyword in thermal_keywords):
             determined_type_for_line = 'thermal'
         
         # Ejecta zones: Thickness measurements (e.g., ">10 m")
         elif description_part.startswith(">") and description_part.endswith("m"):
             determined_type_for_line = 'ejecta'
         
-        # Airblast zones: Structural damage descriptions
-        elif any(keyword.lower() in description_part.lower() for keyword in 
-                ["collapse", "distorted", "damage", "shatter", "structural", 
-                 "windows", "buildings", "office-type", "wall-bearing", "wood frame"]):
+        # Airblast zones: Structural damage descriptions (English and Greek)
+        elif any(keyword in lower_description for keyword in airblast_keywords):
             determined_type_for_line = 'airblast'
         
-        # Additional tsunami detection for wave amplitude descriptions
-        elif "wave amplitude >" in description_part.lower() or \
-             ("tsunami" in section_text.lower() and "zone" in description_part.lower()):
+        # Additional tsunami detection for wave amplitude descriptions (English and Greek)
+        if not determined_type_for_line and (
+            "wave amplitude >" in lower_description
+            or ("tsunami" in lower_section_text and "zone" in lower_description)
+            or ("τσουνάμι" in lower_section_text and ("ζώνη" in lower_description or "zone" in lower_description))
+        ):
             if "km" in line.split(':', 1)[-1]:
                 determined_type_for_line = 'tsunami'
+
+        # Fall back to section-based inference if keyword detection fails
+        if not determined_type_for_line and section_hint:
+            for zone_type, hints in section_type_hints.items():
+                if any(hint in section_hint for hint in hints):
+                    determined_type_for_line = zone_type
+                    break
 
         # Process zones with determined types
         if determined_type_for_line:
@@ -758,7 +819,7 @@ def generate_visualization_data(lat, lon, results_data, results_text, diameter, 
     }
 
     # Parse basic damage zones from structured text results
-    split_parts = results_text.split(r'===')  # Split by section delimiters
+    split_parts = results_text.split('===')  # Split by section delimiters
 
     # Process each section title-content pair
     for i in range(1, len(split_parts), 2):
@@ -766,7 +827,7 @@ def generate_visualization_data(lat, lon, results_data, results_text, diameter, 
         section_content = split_parts[i+1].strip() if (i+1) < len(split_parts) else ""
         
         # Extract zones from section content
-        parsed_zones_from_content = parse_danger_zones(section_content, lat, lon)
+        parsed_zones_from_content = parse_danger_zones(section_content, lat, lon, section_title_full)
         
         # Categorize parsed zones into visualization structure
         for zone in parsed_zones_from_content:

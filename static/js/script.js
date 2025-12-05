@@ -168,7 +168,7 @@ let marker;
 map.on('click', function(e) {
   // Check if the click is within the map's maxBounds
   if (map.options.maxBounds && !map.options.maxBounds.contains(e.latlng)) {
-    alert("Please select a valid point within the map boundaries.");
+    alert(t("messages.validPointBoundaries", "Please select a valid point within the map boundaries."));
     return; // Stop further processing if click is out of bounds
   }
 
@@ -320,9 +320,12 @@ function showZones(type, zoneSpecificData) {
         pane: 'craterBorderPane'
       });
       
+      const craterLabel = typeof t === 'function' ? t('zones.crater', 'Crater') : 'Crater';
+      const craterDiameterLabel = typeof t === 'function' ? t('results.craterDiameter', 'Crater Diameter') : 'Crater Diameter';
+
       craterCircle.bindPopup(`
-        <strong>Crater</strong><br>
-        Diameter: ${(craterDiameterMeters / 1000).toFixed(2)} km
+        <strong>${craterLabel}</strong><br>
+        ${craterDiameterLabel}: ${(craterDiameterMeters / 1000).toFixed(2)} km
       `);
       
       zoneLayers.crater.addLayer(craterCircle);
@@ -351,7 +354,8 @@ function showZones(type, zoneSpecificData) {
     .filter(zone => {
       if (type === 'seismic') {
         const description = zone.description || '';
-        const match = description.match(/(\d+)(?:\+|-\d+)\s*Richter/);
+        // Match both English "Richter" and Greek "Ρίχτερ"
+        const match = description.match(/(\d+)(?:\+|-\d+)\s*(?:Richter|Ρίχτερ)/);
         return match && parseInt(match[1]) >= 4;
       }
       return true;
@@ -394,25 +398,33 @@ function showZones(type, zoneSpecificData) {
       let zoneColorConfig;
 
       if (type.startsWith('vulnerability_')) {
-        let specificVulnerabilityName = "Vulnerability";
-        if (type === 'vulnerability_thermal') specificVulnerabilityName = "Thermal-Induced Vulnerability";
-        else if (type === 'vulnerability_overpressure') specificVulnerabilityName = "Overpressure-Induced Vulnerability";
-        else if (type === 'vulnerability_seismic') specificVulnerabilityName = "Seismic-Induced Vulnerability";
-        else if (type === 'vulnerability_ejecta') specificVulnerabilityName = "Ejecta-Induced Vulnerability";
-        else if (type === 'vulnerability_wind') specificVulnerabilityName = "Wind-Induced Vulnerability";
-        else if (type === 'vulnerability_combined') specificVulnerabilityName = "Combined Vulnerability";
+        let specificVulnerabilityName;
+        // Determine the translated name for the specific vulnerability type
+        if (type === 'vulnerability_thermal') {
+            specificVulnerabilityName = t('vulnerabilityTypes.thermal', 'Thermal-Induced Vulnerability');
+        } else if (type === 'vulnerability_overpressure') {
+            specificVulnerabilityName = t('vulnerabilityTypes.overpressure', 'Overpressure-Induced Vulnerability');
+        } else if (type === 'vulnerability_wind') {
+            specificVulnerabilityName = t('vulnerabilityTypes.wind', 'Wind-Induced Vulnerability');
+        } else if (type === 'vulnerability_seismic') {
+            specificVulnerabilityName = t('vulnerabilityTypes.seismic', 'Seismic-Induced Vulnerability');
+        } else if (type === 'vulnerability_ejecta') {
+            specificVulnerabilityName = t('vulnerabilityTypes.ejecta', 'Ejecta-Induced Vulnerability');
+        } else { // Default to combined
+            specificVulnerabilityName = t('vulnerabilityTypes.combined', 'Combined Vulnerability');
+        }
 
         popupContent = `
-          <strong>${specificVulnerabilityName} Zone</strong><br>
-          Risk Level: ${(zone.threshold * 100).toFixed(1)}%<br>
-          Range: ${zone.start_distance.toFixed(2)} - ${zone.end_distance.toFixed(2)} km
+          <strong>${specificVulnerabilityName}</strong><br>
+          ${t('results.riskLevel', 'Risk Level')}: ${(zone.threshold * 100).toFixed(1)}%<br>
+          ${t('results.range', 'Range')}: ${zone.start_distance.toFixed(2)} - ${zone.end_distance.toFixed(2)} km
         `;
         const color = getZoneColor('vulnerability', zone.threshold || 0.5);
         zoneColorConfig = { outline: color, fill: color };
       } else {
         popupContent = `
           <strong>${zone.description}</strong><br>
-          Range: ${zone.start_distance.toFixed(2)} - ${zone.end_distance.toFixed(2)} km
+          ${t('results.range', 'Range')}: ${zone.start_distance.toFixed(2)} - ${zone.end_distance.toFixed(2)} km
         `;
         const fillColor = getZoneColor(type, zone.threshold || 0.5);
         const outlineColor = type === 'thermal' ? '#FF4500' : fillColor;
@@ -517,7 +529,7 @@ async function loadNasaData() {
   
   // Disable button and show loading state
   nasaBtn.disabled = true;
-  nasaBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Fetching...`;
+  nasaBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> ${t("loading.fetching", "Fetching...")}`;
 
   try {
     const response = await fetch('/generate-neo');
@@ -540,17 +552,17 @@ async function loadNasaData() {
         document.getElementById("distance").value = 100;
       }
       
-      // Optionally, display an alert with the object's name
+      // Optionally, display a styled notification with the object's name
       if (data.name) {
-        alert(`Loaded data for NEO: ${data.name}`);
+        showNasaNotification(data.name);
       }
 
     } else {
-      throw new Error("Received empty data from the server.");
+      throw new Error(t("messages.receivedEmptyData", "Received empty data from the server."));
     }
   } catch (error) {
     console.error('Error fetching NASA data:', error);
-    alert(`Could not load NASA data: ${error.message}`);
+    alert(`${t("messages.couldNotLoadNasa", "Could not load NASA data:")} ${error.message}`);
   } finally {
     // Restore button to its original state
     nasaBtn.disabled = false;
@@ -586,9 +598,9 @@ function createEffectCard(title, value, distance, subtitle = "") {
     ["overpressure", "seismic", "thermal", "ejecta", "tsunami"].some((word) => 
       title.toLowerCase().includes(word)
     ) &&
-    !title.toLowerCase().includes(" at ")
+    !title.toLowerCase().includes(` ${t("translations.at", "at")} `)
   ) {
-    title = `${title} at ${distance} km`;
+    title = `${title} ${t("translations.at", "at")} ${distance} km`;
   }
   return `
     <div class="col-md-6">
@@ -606,9 +618,9 @@ function createDangerZone(label, range, distance) {
     ["overpressure", "seismic", "thermal", "ejecta", "tsunami"].some((word) => 
       label.toLowerCase().includes(word)
     ) &&
-    !label.toLowerCase().includes(" at ")
+    !label.toLowerCase().includes(` ${t("translations.at", "at")} `)
   ) {
-    label = `${label} at ${distance} km`;
+    label = `${label} ${t("translations.at", "at")} ${distance} km`;
   }
   return `
     <div class="col-12">
@@ -712,8 +724,23 @@ function createImpactOverviewItem(label, value, unit = '') {
   `;
 }
 
-async function handleSubmit(e) {
+async function handleSubmit(e, overrideParams = null) {
   e.preventDefault();
+  
+  // Check if a location has been selected on the map
+  const latitude = document.getElementById('latitude').value;
+  const longitude = document.getElementById('longitude').value;
+  
+  if (!latitude || !longitude || !marker) {
+    showCustomAlert(t('messages.selectLocationFirst', 'Please select a location on the map before running the simulation.'));
+    // Scroll to the map
+    const mapElement = document.getElementById('map');
+    if (mapElement) {
+      mapElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    return;
+  }
+  
   const loadingOverlay = document.querySelector(".loading-overlay");
   const resultsContainer = document.getElementById("resultsContainer");
   
@@ -723,26 +750,26 @@ async function handleSubmit(e) {
     
     // Array of interesting asteroid impact facts
     const impactFacts = [
-      "The Chicxulub impact that killed the dinosaurs released 100 trillion tons of TNT equivalent—over a billion times the energy of the Hiroshima bomb.",
-      "The Tunguska event in 1908 was caused by a ~50-60 m object that air-burst over Siberia, flattening about 2,150 km² of forest and felling 80 million trees.",
-      "A kilometer-scale asteroid impacts Earth only about once every 500,000 years on average.",
-      "The Chelyabinsk meteor in 2013 was only ~17-20 m across but injured ~1,500 people and damaged ~7,200 buildings, mostly from broken glass.",
-      "South Africa's Vredefort Dome is the largest confirmed terrestrial impact structure, originally ~300 km across, formed 2.023 billion years ago.",
-      "NASA's DART mission struck the 170 m-wide moonlet Dimorphos at ~6.6 km/s in 2022, shortening its orbit by 32 minutes—demonstrating kinetic-impactor deflection.",
-      "Meteorites fall into three broad types: stony (silicate-rich), iron (metallic Ni-Fe), and stony-iron (mixed), each with numerous subgroups.",
-      "An asteroid's kinetic energy scales as ½mv²—doubling its velocity quadruples its energy—making speed as critical as mass for impact hazards.",
-      "As of December 2024, over 37,000 Near-Earth Objects have been cataloged, with 2,465 classified as potentially hazardous asteroids.",
-      "Although the Main Belt contains millions of asteroids, their average separation is roughly 965,000 km—creating vast voids between objects.",
-      "Meteoroids strike Earth at between 11 and 72 km/s; those above 20 km/s ionize the air ahead, creating bright plasma trails.",
-      "Objects ≥100 m diameter can release tens to hundreds of megatons of TNT equivalent, causing regional devastation.",
-      "Earth accretes ~54 tons of interplanetary material daily, totaling ~19,700 tons per year of dust and micrometeoroids.",
-      "Bodies <50 m often air-burst (like Tunguska), delivering more widespread damage than crater-forming ground impacts of similar mass.",
-      "The Barringer Crater in Arizona is 1.186 km in diameter and 170 m deep, formed ~50,000 years ago by a ~50 m iron meteorite.",
-      "The Hoba meteorite in Namibia is the largest known intact meteorite at over 60 tonnes, composed almost entirely of iron-nickel alloy.",
-      "NASA's NEO Surveyor space telescope, planned for launch by 2027, aims to complete the survey of 90% of NEOs ≥140 m.",
-      "Of the known near-Earth asteroids, 2,465 are classified as Potentially Hazardous Asteroids—large enough and close enough to pose a significant impact risk.",
-      "The Torino scale rates NEO impact threat from 0 (none) to 10 (certain global catastrophe); only asteroid Apophis ever reached level 4.",
-      "Approximately 25 million meteoroids enter Earth's atmosphere each day, ranging from dust-sized particles to occasional boulder-sized objects."
+      t('facts.chicxulub') || "The Chicxulub impact that killed the dinosaurs released 100 trillion tons of TNT equivalent—over a billion times the energy of the Hiroshima bomb.",
+      t('facts.tunguska') || "The Tunguska event in 1908 was caused by a ~50-60 m object that air-burst over Siberia, flattening about 2,150 km² of forest and felling 80 million trees.",
+      t('facts.kilometer') || "A kilometer-scale asteroid impacts Earth only about once every 500,000 years on average.",
+      t('facts.chelyabinsk') || "The Chelyabinsk meteor in 2013 was only ~17-20 m across but injured ~1,500 people and damaged ~7,200 buildings, mostly from broken glass.",
+      t('facts.vredefort') || "South Africa's Vredefort Dome is the largest confirmed terrestrial impact structure, originally ~300 km across, formed 2.023 billion years ago.",
+      t('facts.dart') || "NASA's DART mission struck the 170 m-wide moonlet Dimorphos at ~6.6 km/s in 2022, shortening its orbit by 32 minutes—demonstrating kinetic-impactor deflection.",
+      t('facts.meteorites') || "Meteorites fall into three broad types: stony (silicate-rich), iron (metallic Ni-Fe), and stony-iron (mixed), each with numerous subgroups.",
+      t('facts.kineticEnergy') || "An asteroid's kinetic energy scales as ½mv²—doubling its velocity quadruples its energy—making speed as critical as mass for impact hazards.",
+      t('facts.neoCount') || "As of December 2024, over 37,000 Near-Earth Objects have been cataloged, with 2,465 classified as potentially hazardous asteroids.",
+      t('facts.mainBelt') || "Although the Main Belt contains millions of asteroids, their average separation is roughly 965,000 km—creating vast voids between objects.",
+      t('facts.meteoroidSpeed') || "Meteoroids strike Earth at between 11 and 72 km/s; those above 20 km/s ionize the air ahead, creating bright plasma trails.",
+      t('facts.hundredMeter') || "Objects ≥100 m diameter can release tens to hundreds of megatons of TNT equivalent, causing regional devastation.",
+      t('facts.earthAccretion') || "Earth accretes ~54 tons of interplanetary material daily, totaling ~19,700 tons per year of dust and micrometeoroids.",
+      t('facts.airBurst') || "Bodies <50 m often air-burst (like Tunguska), delivering more widespread damage than crater-forming ground impacts of similar mass.",
+      t('facts.barringer') || "The Barringer Crater in Arizona is 1.186 km in diameter and 170 m deep, formed ~50,000 years ago by a ~50 m iron meteorite.",
+      t('facts.hoba') || "The Hoba meteorite in Namibia is the largest known intact meteorite at over 60 tonnes, composed almost entirely of iron-nickel alloy.",
+      t('facts.neoSurveyor') || "NASA's NEO Surveyor space telescope, planned for launch by 2027, aims to complete the survey of 90% of NEOs ≥140 m.",
+      t('facts.phas') || "Of the known near-Earth asteroids, 2,465 are classified as Potentially Hazardous Asteroids—large enough and close enough to pose a significant impact risk.",
+      t('facts.torino') || "The Torino scale rates NEO impact threat from 0 (none) to 10 (certain global catastrophe); only asteroid Apophis ever reached level 4.",
+      t('facts.dailyMeteoroids') || "Approximately 25 million meteoroids enter Earth's atmosphere each day, ranging from dust-sized particles to occasional boulder-sized objects."
     ];
     
     // Shuffle the array to get a random order
@@ -755,27 +782,27 @@ async function handleSubmit(e) {
         <div class="timeline-progress"></div>
         <div class="timeline-step active" data-step="entry">
           <div class="step-icon"><i class="mdi mdi-meteor"></i></div>
-          <div class="step-label">Atmospheric Entry</div>
+          <div class="step-label">${t('loading.atmosphericEntry') || "Atmospheric Entry"}</div>
           <div class="step-details" id="entryDetails"></div>
         </div>
         <div class="timeline-step" data-step="impact">
           <div class="step-icon"><i class="mdi mdi-explosion"></i></div>
-          <div class="step-label">Impact Effects</div>
+          <div class="step-label">${t('loading.impactEffects') || "Impact Effects"}</div>
           <div class="step-details" id="impactDetails"></div>
         </div>
         <div class="timeline-step" data-step="zones">
           <div class="step-icon"><i class="mdi mdi-map-marker-radius"></i></div>
-          <div class="step-label">Vulnerability Zones</div>
+          <div class="step-label">${t('loading.vulnerabilityZones') || "Vulnerability Zones"}</div>
           <div class="step-details" id="zonesDetails"></div>
         </div>
         <div class="timeline-step" data-step="population">
           <div class="step-icon"><i class="mdi mdi-account-group"></i></div>
-          <div class="step-label">Population Impact</div>
+          <div class="step-label">${t('loading.populationImpact') || "Population Impact"}</div>
           <div class="step-details" id="populationDetails"></div>
         </div>
       </div>
       <div class="loading-fact" id="factContainer">
-        <span class="fact-prefix">Did you know?</span>
+        <span class="fact-prefix">${t('loading.didYouKnow') || "Did you know?"}</span>
         <span class="fact-text">${shuffledFacts[currentFactIndex]}</span>
       </div>
     `;
@@ -800,33 +827,40 @@ async function handleSubmit(e) {
     }, 12000); // Change fact every 12 seconds
     
     // Simulate progress through timeline steps with updated text
-    animateTimelineStep('entry', 'Calculating entry velocity and atmospheric effects...', 2500);
+    animateTimelineStep('entry', t('loading.calculatingEntry') || 'Calculating entry velocity and atmospheric effects...', 2500);
     
     setTimeout(() => {
-      animateTimelineStep('impact', 'Simulating seismic, airblast, thermal and ejecta effects...', 3000);
+      animateTimelineStep('impact', t('loading.simulatingEffects') || 'Simulating seismic, airblast, thermal and ejecta effects...', 3000);
     }, 3000);
     
     setTimeout(() => {
-      animateTimelineStep('zones', 'Calculating vulnerability zones...', 3000);
+      animateTimelineStep('zones', t('loading.calculatingZones') || 'Calculating vulnerability zones...', 3000);
     }, 6500);
     
     setTimeout(() => {
-      animateTimelineStep('population', 'Estimating casualties...', 3000);
+      animateTimelineStep('population', t('loading.estimatingCasualties') || 'Estimating casualties...', 3000);
     }, 10000);
     
+    // Store simulation parameters for potential re-use when language changes
+    const simulationParams = overrideParams || {
+      diameter: parseFloat(document.getElementById("diameter").value),
+      density: parseFloat(document.getElementById("density").value),
+      velocity: parseFloat(document.getElementById("velocity").value),
+      entry_angle: parseFloat(document.getElementById("entry_angle").value),
+      distance: parseFloat(document.getElementById("distance").value),
+      latitude: parseFloat(document.getElementById("latitude").value || 0),
+      longitude: parseFloat(document.getElementById("longitude").value || 0),
+      language: currentLanguage
+    };
+    
+    // Always update language to current language (important when switching languages)
+    simulationParams.language = currentLanguage;
+
     // Make the actual API call
     const response = await fetch("/simulate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        diameter: parseFloat(document.getElementById("diameter").value),
-        density: parseFloat(document.getElementById("density").value),
-        velocity: parseFloat(document.getElementById("velocity").value),
-        entry_angle: parseFloat(document.getElementById("entry_angle").value),
-        distance: parseFloat(document.getElementById("distance").value),
-        latitude: parseFloat(document.getElementById("latitude").value || 0),
-        longitude: parseFloat(document.getElementById("longitude").value || 0)
-      }),
+      body: JSON.stringify(simulationParams),
     });
 
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -835,6 +869,9 @@ async function handleSubmit(e) {
     
     // Store the full results data as a JSON string in a data attribute
     resultsContainer.dataset.lastResults = JSON.stringify(data.results_data);
+    
+    // Store the simulation parameters for potential re-use when language changes
+    resultsContainer.dataset.lastSimulationParams = JSON.stringify(simulationParams);
 
     // removed: populateComparisonBoxes(data.results_data.comparisons)
     // ---- START: New Impact Overview Population Logic ----
@@ -849,29 +886,29 @@ async function handleSubmit(e) {
     let overviewHTML = '';
 
     // Common item: Initial Kinetic Energy
-    overviewHTML += createImpactOverviewItem("Initial Kinetic Energy (MT TNT)", energyData.initial_energy_megatons, "MT TNT");
+    overviewHTML += createImpactOverviewItem(t("results.initialKineticEnergy", "Initial Kinetic Energy (MT TNT)"), energyData.initial_energy_megatons, "MT TNT");
 
     // Breakup Altitude - show if it's a breakup event (ground impact or airburst)
     if (eventType === "ground impact" || eventType === "airburst") {
-        overviewHTML += createImpactOverviewItem("Breakup Altitude", atmEntry.breakup_altitude, "m");
+        overviewHTML += createImpactOverviewItem(t("results.breakupAltitude", "Breakup Altitude"), atmEntry.breakup_altitude, "m");
     } else if (eventType === "intact") {
         // For intact objects, breakup altitude is not applicable.
-        // overviewHTML += createImpactOverviewItem("Breakup Altitude", "N/A (Object Intact)"); // Or omit
+        // overviewHTML += createImpactOverviewItem(t("results.breakupAltitude", "Breakup Altitude"), "N/A (Object Intact)"); // Or omit
     }
 
     if (eventType === "airburst") {
-        overviewHTML += createImpactOverviewItem("Airburst Altitude", atmEntry.airburst_altitude, "m");
-        overviewHTML += createImpactOverviewItem("Post Airburst Velocity", atmEntry.final_velocity ? atmEntry.final_velocity / 1000 : null, "km/s");
-        overviewHTML += createImpactOverviewItem("Airburst Energy (MT TNT)", energyData.specific_energy_megatons, "MT TNT");
+        overviewHTML += createImpactOverviewItem(t("results.airburstAltitude", "Airburst Altitude"), atmEntry.airburst_altitude, "m");
+        overviewHTML += createImpactOverviewItem(t("results.postAirburstVelocity", "Post Airburst Velocity"), atmEntry.final_velocity ? atmEntry.final_velocity / 1000 : null, "km/s");
+        overviewHTML += createImpactOverviewItem(t("results.airburstEnergy", "Airburst Energy (MT TNT)"), energyData.specific_energy_megatons, "MT TNT");
     } else if (eventType === "ground impact" || eventType === "intact") {
-        overviewHTML += createImpactOverviewItem("Impact Speed", atmEntry.final_velocity ? atmEntry.final_velocity / 1000 : null, "km/s");
-        overviewHTML += createImpactOverviewItem("Impact Energy (MT TNT)", energyData.specific_energy_megatons, "MT TNT");
-        overviewHTML += createImpactOverviewItem("Transient Crater Diameter", craterData?.transient_diameter ? craterData.transient_diameter / 1000 : null, "km");
-        overviewHTML += createImpactOverviewItem("Final Crater Diameter", craterData?.final_diameter ? craterData.final_diameter / 1000 : null, "km");
+        overviewHTML += createImpactOverviewItem(t("results.impactSpeed", "Impact Speed"), atmEntry.final_velocity ? atmEntry.final_velocity / 1000 : null, "km/s");
+        overviewHTML += createImpactOverviewItem(t("results.impactEnergy", "Impact Energy (MT TNT)"), energyData.specific_energy_megatons, "MT TNT");
+        overviewHTML += createImpactOverviewItem(t("results.transientCraterDiameter", "Transient Crater Diameter"), craterData?.transient_diameter ? craterData.transient_diameter / 1000 : null, "km");
+        overviewHTML += createImpactOverviewItem(t("results.finalCraterDiameter", "Final Crater Diameter"), craterData?.final_diameter ? craterData.final_diameter / 1000 : null, "km");
     } else {
         // Fallback for any other unexpected event types
         overviewHTML += `<div class="col-12"><p class="text-white">Overview for event type: "${eventType}"</p></div>`;
-        overviewHTML += createImpactOverviewItem("Final Velocity", atmEntry.final_velocity ? atmEntry.final_velocity / 1000 : null, "km/s");
+        overviewHTML += createImpactOverviewItem(t("results.finalVelocity", "Final Velocity"), atmEntry.final_velocity ? atmEntry.final_velocity / 1000 : null, "km/s");
     }
     impactOverviewContainer.innerHTML = overviewHTML;
     // ---- END: New Impact Overview Population Logic ----
@@ -968,7 +1005,7 @@ async function handleSubmit(e) {
                           ${formattedValue}
                           ${!value.includes("N/A") && vulnValue > 0 ? 
                               `<small class="vulnerability-contribution">
-                                  (${relativeContribution.toFixed(1)}% of total vulnerability)
+                  (${relativeContribution.toFixed(1)}% ${t("vulnerabilityText.ofTotal", "of total vulnerability")})
                               </small>` : 
                               ''}
                       </div>
@@ -1001,9 +1038,9 @@ async function handleSubmit(e) {
         .map(zone => `
           <div class="col-12">
             <div class="population-card">
-              <div class="effect-label">Vulnerability Zone ${(zone.vulnerability_threshold * 100).toFixed(1)}%</div>
+              <div class="effect-label">${t('results.vulnerabilityZone') || "Vulnerability Zone"} ${(zone.vulnerability_threshold * 100).toFixed(1)}%</div>
               <div class="population-zone">
-                <div>Distance Range: ${zone.start_distance.toFixed(2)} - ${zone.end_distance.toFixed(2)} km</div>
+                <div>${t('results.distanceRange') || "Distance Range"}: ${zone.start_distance.toFixed(2)} - ${zone.end_distance.toFixed(2)} km</div>
               </div>
             </div>
           </div>
@@ -1013,27 +1050,28 @@ async function handleSubmit(e) {
 
     // BEGIN: Code from "Εικόνες file" for Affected Countries
     if (data.results_data.population_analysis && data.results_data.population_analysis.countries) {
-      const countriesContainer = document.getElementById("countriesResults"); // Ensure this ID exists in your HTML
+      const countriesContainer = document.getElementById("countriesResults");
       const countries = data.results_data.population_analysis.countries;
       
       // Sort countries by casualties (descending)
       countries.sort((a, b) => b.total_casualties - a.total_casualties);
       
-      // Get total affected population across all countries (variable totalPop is not used in the original snippet's HTML output but kept for consistency)
-      const totalPop = countries.reduce((sum, country) => sum + country.total_population, 0); 
-      
       // Create HTML for each country
       if (countriesContainer) {
         countriesContainer.innerHTML = countries
           .map(country => {
+            // Use translated name from backend if available, otherwise try frontend translation
+            const displayName = country.translated_name || 
+                               t(`countries.${country.name}`, country.name || `Country FID ${country.fid}`);
+            
             return `
               <div class="col-md-6 mb-3">
                 <div class="country-card effect-card">
-                  <div class="effect-label">${country.name || ('Country FID ' + country.fid)}</div>
+                  <div class="effect-label">${displayName}</div>
                   <div class="country-stats">
                     <div class="row">
                       <div class="col-12">
-                        <div class="stat-label">Total Casualties</div>
+                        <div class="stat-label">${t('results.totalCasualties', 'Total Casualties')}</div>
                         <div class="stat-value text-danger">${country.total_casualties.toLocaleString()}</div>
                       </div>
                     </div>
@@ -1049,7 +1087,7 @@ async function handleSubmit(e) {
           countriesContainer.innerHTML = `
             <div class="col-12">
               <div class="effect-card text-center">
-                <p class="mb-0">No country data available</p>
+                <p class="mb-0">${t('messages.noCountryData', 'No country data available')}</p>
               </div>
             </div>
           `;
@@ -1060,8 +1098,8 @@ async function handleSubmit(e) {
 
     // BEGIN: Code from "Εικόνες file" for Economic Impact
     if (data.results_data.economic_analysis) {
-      const economicContainer = document.getElementById("economicResults"); // Ensure this ID exists
-      const totalEconomicDamage = document.getElementById("totalEconomicDamage"); // Ensure this ID exists
+      const economicContainer = document.getElementById("economicResults");
+      const totalEconomicDamage = document.getElementById("totalEconomicDamage");
       const economicData = data.results_data.economic_analysis;
       
       if (totalEconomicDamage) {
@@ -1078,13 +1116,17 @@ async function handleSubmit(e) {
         economicContainer.innerHTML = economicData.countries
           .filter(country => country.economic_damage !== null) 
           .map(country => {
+            // Use translated name from backend if available, otherwise try frontend translation
+            const displayName = country.translated_name || 
+                               t(`countries.${country.name}`, country.name);
+            
             const formattedDamage = new Intl.NumberFormat('en-US', { 
               style: 'currency', 
               currency: 'USD', 
               notation: 'compact',
               maximumFractionDigits: 1
             }).format(country.economic_damage);
-    
+
             const formattedGdpPerCapita = new Intl.NumberFormat('en-US', {
               style: 'currency',
               currency: 'USD',
@@ -1094,15 +1136,15 @@ async function handleSubmit(e) {
             return `
               <div class="col-md-6 mb-3">
                 <div class="economy-card effect-card">
-                  <div class="effect-label">${country.name}</div>
+                  <div class="effect-label">${displayName}</div>
                   <div class="economy-stats">
                     <div class="row">
                       <div class="col-md-6">
-                        <div class="stat-label">Economic Damage</div>
+                        <div class="stat-label">${t('results.economicDamage', 'Economic Damage')}</div>
                         <div class="stat-value text-danger">${formattedDamage}</div>
                       </div>
                       <div class="col-md-6">
-                        <div class="stat-label">GDP Per Capita (${country.gdp_year})</div>
+                        <div class="stat-label">${t('results.gdpPerCapita', 'GDP Per Capita')} (${country.gdp_year})</div>
                         <div class="stat-value">${formattedGdpPerCapita}</div>
                       </div>
                     </div>
@@ -1117,7 +1159,7 @@ async function handleSubmit(e) {
           economicContainer.innerHTML = `
             <div class="col-12">
               <div class="effect-card text-center">
-                <p class="mb-0">No GDP data available for affected countries</p>
+                <p class="mb-0">${t('messages.noGdpData', 'No GDP data available for affected countries')}</p>
               </div>
             </div>
           `;
@@ -1125,10 +1167,10 @@ async function handleSubmit(e) {
           economicContainer.innerHTML += `
             <div class="col-12 mt-3">
               <div class="effect-card">
-                <div class="effect-label text-white fw-bold">About Economic Impact Calculation</div>
-                <p class="mb-2 text-highlight-orange">Economic damage is calculated using the formula:</p>
-                <p class="mb-0"><strong class="text-white">Casualties × GDP per capita</strong></p>
-                <p class="mb-0 mt-2"><small class="text-muted text-highlight-orange">This represents the direct economic impact based on casualties and national GDP per capita.</small></p>
+                <div class="effect-label text-white fw-bold">${t('economic.aboutCalculation', 'About Economic Impact Calculation')}</div>
+                <p class="mb-2 text-highlight-orange">${t('economic.formula', 'Economic damage is calculated using the formula:')}</p>
+                <p class="mb-0"><strong class="text-white">${t('economic.formulaText', 'Casualties × GDP per capita')}</strong></p>
+                <p class="mb-0 mt-2"><small class="text-muted text-highlight-orange">${t('economic.explanation', 'This represents the direct economic impact based on casualties and national GDP per capita.')}</small></p>
               </div>
             </div>
           `;
@@ -1239,21 +1281,21 @@ function populateTab(tabId, items) {
     let tsunamiContentHTML = `
       <div class="col-12">
         <div class="effect-card">
-          <h5 class="effect-label">Note on Tsunami Calculations</h5>
+          <h5 class="effect-label">${t("tsunamiDisclaimer.title", "Note on Tsunami Calculations")}</h5>
           <p class="mb-1 mt-2" style="font-size: 0.9rem; line-height: 1.6;">
-            The tsunami effects presented here are based on a <strong>simplified approximation</strong>. This model considers initial wave amplitude at the source and basic geometric spreading. The initial wave amplitude calculation is validated against the conditions described in the tsunami algorithm by Rumpf et al. (2016), serving as a basis for future enhancements. More advanced tsunami models were tested but proved too computationally intensive for real-time online purposes; their integration is a potential future improvement.
+            ${t("tsunamiDisclaimer.simplified", "The tsunami effects presented here are based on a")} <strong>${t("tsunamiDisclaimer.simplifiedBold", "simplified approximation")}</strong>${t("tsunamiDisclaimer.explanation", ". This model considers initial wave amplitude at the source and basic geometric spreading. The initial wave amplitude calculation is validated against the conditions described in the tsunami algorithm by Rumpf et al. (2016), serving as a basis for future enhancements. More advanced tsunami models were tested but proved too computationally intensive for real-time online purposes; their integration is a potential future improvement.")}
           </p>
           <p class="mb-1 mt-1" style="font-size: 0.9rem; line-height: 1.6;">
-            Accurate, operational tsunami modeling is significantly more complex and requires:
+            ${t("tsunamiDisclaimer.requirements", "Accurate, operational tsunami modeling is significantly more complex and requires:")}
           </p>
           <ul style="font-size: 0.9rem; line-height: 1.6; margin-top: 0.5rem; margin-bottom: 0.5rem;">
-            <li>Detailed bathymetry (sea floor depth, slope, and specific underwater features)</li>
-            <li>High-resolution coastal topography</li>
-            <li>Consideration of complex wave dynamics (e.g., refraction, diffraction, shoaling, reflection, and run-up)</li>
-            <li>Advanced hydrodynamic equations and numerical simulations</li>
+            <li>${t("tsunamiDisclaimer.detailedBathymetry", "Detailed bathymetry (sea floor depth, slope, and specific underwater features)")}</li>
+            <li>${t("tsunamiDisclaimer.coastalTopography", "High-resolution coastal topography")}</li>
+            <li>${t("tsunamiDisclaimer.waveDynamics", "Consideration of complex wave dynamics (e.g., refraction, diffraction, shoaling, reflection, and run-up)")}</li>
+            <li>${t("tsunamiDisclaimer.hydrodynamicEquations", "Advanced hydrodynamic equations and numerical simulations")}</li>
           </ul>
           <p class="mb-0 mt-2" style="font-size: 0.9rem; line-height: 1.6; font-weight: bold;">
-            Due to these simplifications, the results from this model are for general informational purposes only and are not visualized on the map.
+            ${t("tsunamiDisclaimer.limitationsBold", "Due to these simplifications, the results from this model are for general informational purposes only and are not visualized on the map.")}
           </p>
         </div>
       </div>
@@ -1268,7 +1310,7 @@ function populateTab(tabId, items) {
             tsunamiContentHTML += `
               <div class="col-12 mt-3">
                 <div class="effect-card">
-                  <h6 class="effect-label">Approximate Wave Amplitude Distances:</h6>
+                  <h6 class="effect-label">${t("tsunamiDisclaimer.approximateWave", "Approximate Wave Amplitude Distances:")}</h6>
             `;
             hasTextualData = true;
           }
@@ -1293,7 +1335,7 @@ function populateTab(tabId, items) {
        tsunamiContentHTML += `
          <div class="col-12 mt-3">
            <div class="effect-card">
-             <p class="mb-0">No significant tsunami effects calculated by the simplified model for the current parameters, or data is not applicable.</p>
+             <p class="mb-0">${t('tsunamiDisclaimer.noSignificantEffects') || "No significant tsunami effects calculated by the simplified model for the current parameters, or data is not applicable."}</p>
            </div>
          </div>
        `;
@@ -1342,7 +1384,7 @@ function populateTab(tabId, items) {
   if (locationEffects.length > 0) {
     container.innerHTML += `
       <div class="col-12">
-        <h4 class="mt-3 mb-3">Effects at Your Selected Location</h4>
+        <h4 class="mt-3 mb-3">${t("results.effectsAtLocation", "Effects at Your Selected Location")}</h4>
       </div>
     `;
     
@@ -1386,7 +1428,7 @@ function populateTab(tabId, items) {
         
         // Specifically change "Peak wind velocity" to "Wind velocity" for the wind tab
         if (tabId === "windEffects" && title === "Peak wind velocity") {
-          title = "Wind velocity";
+          title = t("results.windVelocity", "Wind velocity");
         }
         container.innerHTML += createEffectCard(title, item.value);
       });
@@ -1397,23 +1439,23 @@ function populateTab(tabId, items) {
   let dangerZoneDescriptionText = "";
 
   if (tabId === "overpressureEffects" && tabSpecificDangerZones.length > 0) {
-    dangerZoneTitleText = "Overpressure Danger Zones";
-    dangerZoneDescriptionText = "Areas affected by different overpressure levels";
+    dangerZoneTitleText = t('effects.overpressureDangerZones') || "Overpressure Danger Zones";
+    dangerZoneDescriptionText = t('effects.overpressureDescription') || "Areas affected by different overpressure levels";
   } else if (tabId === "windEffects" && tabSpecificDangerZones.length > 0) {
-    dangerZoneTitleText = "Wind Danger Zones (EF Scale)";
-    dangerZoneDescriptionText = "Areas affected by different wind speed categories";
+    dangerZoneTitleText = t('effects.windDangerZones') || "Wind Danger Zones (EF Scale)";
+    dangerZoneDescriptionText = t('effects.windDescription') || "Areas affected by different wind speed categories";
   } else if (tabId === "thermalEffects" && tabSpecificDangerZones.length > 0) {
-    dangerZoneTitleText = "Thermal Radiation Danger Zones";
-    dangerZoneDescriptionText = "Areas affected by different thermal exposure levels";
+    dangerZoneTitleText = t('effects.thermalDangerZones') || "Thermal Radiation Danger Zones";
+    dangerZoneDescriptionText = t('effects.thermalDescription') || "Areas affected by different thermal exposure levels";
   } else if (tabId === "seismicEffects" && tabSpecificDangerZones.length > 0) {
-    dangerZoneTitleText = "Seismic Hazard Zones";
-    dangerZoneDescriptionText = "Areas affected by different seismic intensity levels";
+    dangerZoneTitleText = t('effects.seismicHazardZones') || "Seismic Hazard Zones";
+    dangerZoneDescriptionText = t('effects.seismicDescription') || "Areas affected by different seismic intensity levels";
   } else if (tabId === "ejectaEffects" && tabSpecificDangerZones.length > 0) {
-    dangerZoneTitleText = "Ejecta Hazard Zones";
-    dangerZoneDescriptionText = "Areas affected by different ejecta deposit thicknesses";
+    dangerZoneTitleText = t('effects.ejectaHazardZones') || "Ejecta Hazard Zones";
+    dangerZoneDescriptionText = t('effects.ejectaDescription') || "Areas affected by different ejecta deposit thicknesses";
   } else if (tabId === "tsunamiEffects" && tabSpecificDangerZones.length > 0) {
-    dangerZoneTitleText = "Tsunami Hazard Zones";
-    dangerZoneDescriptionText = "Areas affected by different tsunami wave amplitudes";
+    dangerZoneTitleText = t('effects.tsunamiHazardZones') || "Tsunami Hazard Zones";
+    dangerZoneDescriptionText = t('effects.tsunamiDescription') || "Areas affected by different tsunami wave amplitudes";
   }
 
 
@@ -1444,7 +1486,7 @@ function populateTab(tabId, items) {
     container.innerHTML = `
       <div class="col-12">
           <div class="effect-card text-center">
-              <p class="mb-0">No data available for this effect type or at the selected distance.</p>
+              <p class="mb-0">${t('messages.noDataAvailable') || "No data available for this effect type or at the selected distance."}</p>
           </div>
       </div>
     `;
@@ -1551,3 +1593,159 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
+HEAD
+
+
+// Custom Alert Function
+function showCustomAlert(message) {
+  // Remove any existing alert
+  const existingAlert = document.querySelector('.custom-alert-overlay');
+  if (existingAlert) {
+    existingAlert.remove();
+  }
+
+  // Create alert overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'custom-alert-overlay';
+  
+  // Create alert box
+  const alertBox = document.createElement('div');
+  alertBox.className = 'custom-alert-box';
+  
+  // Create icon
+  const icon = document.createElement('div');
+  icon.className = 'custom-alert-icon';
+  icon.innerHTML = '<i class="mdi mdi-map-marker-alert"></i>';
+  
+  // Create message
+  const messageDiv = document.createElement('div');
+  messageDiv.className = 'custom-alert-message';
+  messageDiv.textContent = message;
+  
+  // Create button
+  const button = document.createElement('button');
+  button.className = 'custom-alert-button';
+  button.textContent = 'OK';
+  button.onclick = () => {
+    overlay.classList.add('fade-out');
+    setTimeout(() => overlay.remove(), 300);
+  };
+  
+  // Assemble alert
+  alertBox.appendChild(icon);
+  alertBox.appendChild(messageDiv);
+  alertBox.appendChild(button);
+  overlay.appendChild(alertBox);
+  
+  // Add to body (bypasses app-wrapper scaling on Windows)
+  document.body.appendChild(overlay);
+  
+  // Focus management for accessibility
+  button.focus();
+  
+  // Handle ESC key to close
+  const handleEscape = (e) => {
+    if (e.key === 'Escape') {
+      overlay.classList.add('fade-out');
+      setTimeout(() => overlay.remove(), 300);
+      document.removeEventListener('keydown', handleEscape);
+    }
+  };
+  document.addEventListener('keydown', handleEscape);
+  
+  // Trigger animation
+  setTimeout(() => overlay.classList.add('show'), 10);
+  
+  // Auto-dismiss after 5 seconds
+  setTimeout(() => {
+    if (document.body.contains(overlay)) {
+      overlay.classList.add('fade-out');
+      setTimeout(() => {
+        overlay.remove();
+        document.removeEventListener('keydown', handleEscape);
+      }, 300);
+    }
+  }, 5000);
+}
+
+// NASA Data Success Notification
+function showNasaNotification(neoName) {
+  // Remove any existing notification
+  const existingNotification = document.querySelector('.nasa-notification-overlay');
+  if (existingNotification) {
+    existingNotification.remove();
+  }
+
+  // Create notification overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'nasa-notification-overlay';
+  
+  // Create notification box
+  const notificationBox = document.createElement('div');
+  notificationBox.className = 'nasa-notification-box';
+  
+  // Create NASA logo/icon
+  const icon = document.createElement('div');
+  icon.className = 'nasa-notification-icon';
+  icon.innerHTML = '<i class="mdi mdi-satellite-variant"></i>';
+  
+  // Create success message
+  const messageDiv = document.createElement('div');
+  messageDiv.className = 'nasa-notification-message';
+  
+  const label = document.createElement('div');
+  label.className = 'nasa-notification-label';
+  label.textContent = t('messages.loadedNeoData', 'Loaded data for NEO:');
+  
+  const neoNameDiv = document.createElement('div');
+  neoNameDiv.className = 'nasa-notification-neo-name';
+  neoNameDiv.textContent = neoName;
+  
+  messageDiv.appendChild(label);
+  messageDiv.appendChild(neoNameDiv);
+  
+  // Create close button
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'nasa-notification-close';
+  closeBtn.innerHTML = '<i class="mdi mdi-close"></i>';
+  closeBtn.onclick = () => {
+    overlay.classList.add('fade-out');
+    setTimeout(() => overlay.remove(), 300);
+  };
+  
+  // Assemble notification
+  notificationBox.appendChild(icon);
+  notificationBox.appendChild(messageDiv);
+  notificationBox.appendChild(closeBtn);
+  overlay.appendChild(notificationBox);
+  
+  // Add to body (bypasses app-wrapper scaling on Windows)
+  document.body.appendChild(overlay);
+  
+  // Focus management for accessibility
+  closeBtn.focus();
+  
+  // Handle ESC key to close
+  const handleEscape = (e) => {
+    if (e.key === 'Escape') {
+      overlay.classList.add('fade-out');
+      setTimeout(() => overlay.remove(), 300);
+      document.removeEventListener('keydown', handleEscape);
+    }
+  };
+  document.addEventListener('keydown', handleEscape);
+  
+  // Trigger animation
+  setTimeout(() => overlay.classList.add('show'), 10);
+  
+  // Auto-dismiss after 6 seconds
+  setTimeout(() => {
+    if (document.body.contains(overlay)) {
+      overlay.classList.add('fade-out');
+      setTimeout(() => {
+        overlay.remove();
+        document.removeEventListener('keydown', handleEscape);
+      }, 300);
+    }
+  }, 6000);
+}

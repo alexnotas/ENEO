@@ -1,0 +1,14 @@
+/* Metric chips / scientific tags */
+.metric-chip { display:inline-flex; align-items:center; gap:.45rem; padding:.45rem .85rem .4rem; border-radius:999px; font-size:.65rem; text-transform:uppercase; letter-spacing:.18em; font-weight:600; background:linear-gradient(120deg, rgba(255,107,53,0.18), rgba(255,158,53,0.18)); border:1px solid rgba(255,107,53,0.4); color:#fff; backdrop-filter:blur(6px); position:relative; overflow:hidden; }
+.metric-chip::before { content:""; position:absolute; inset:0; background:linear-gradient(90deg, rgba(255,255,255,0.15), transparent 60%); opacity:0; transition:.55s; }
+.metric-chip:hover::before { opacity:.6; }
+.metric-chip.accent-secondary { background:linear-gradient(120deg, rgba(255,158,53,0.18), rgba(255,107,53,0.18)); }
+
+.metric-ribbon { position:relative; display:flex; flex-wrap:wrap; gap:.55rem .65rem; margin: 1rem 0 1.25rem; }
+
+.data-ribbon-section { display:flex; flex-wrap:wrap; gap:.4rem .55rem; }
+
+.badge-soft { font-size:.55rem; letter-spacing:.15em; padding:.4rem .6rem .35rem; background:rgba(255,107,53,0.15); border:1px solid rgba(255,107,53,0.35); border-radius:7px; font-weight:600; text-transform:uppercase; }
+
+.value-counter { transition:.55s cubic-bezier(.22,.8,.22,1); }
+.value-counter.updated { color: var(--secondary-color); text-shadow:0 0 12px rgba(255,158,53,0.6); }

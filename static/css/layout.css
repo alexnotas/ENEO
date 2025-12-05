@@ -128,6 +128,11 @@
     padding-right: 15px;
   }
   
+  /* Reduce font size for parameter group titles on mobile to prevent wrapping */
+  .parameter-group h3 {
+    font-size: 1.25rem;
+  }
+
   .main-title {
     font-size: 2.25rem; /* Further reduce for small phones */
     padding-right: 0;

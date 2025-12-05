@@ -31,10 +31,11 @@ from vulnerability_models import (
     fun_ThermRadVulnerability, fun_HighWindVulnerability, fun_EjectaBlanketVulnerability
 )
 from thresholds import (
-    SELECTED_THERMAL_THRESHOLDS, SEISMIC_THRESHOLDS, EJECTA_THRESHOLDS, BLAST_THRESHOLDS,
-    EF_WIND_THRESHOLDS, TSUNAMI_AMPLITUDE_THRESHOLDS,
+    get_selected_thermal_thresholds, get_seismic_thresholds, get_ejecta_thresholds, get_blast_thresholds,
+    get_ef_wind_thresholds, get_tsunami_amplitude_thresholds,
     get_wind_damage_category, get_ejecta_damage_category, get_thermal_damage_category # Added new imports
 )
+from translation_utils import get_translation
 import math # Ensure math is imported for airburst energy calculation and tsunami calcs
 
 def collect_simulation_results(sim: AsteroidImpactSimulation, entry_results,
@@ -329,30 +330,30 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
     if entry_results["event_type"] == "ground impact":
         # Use v_impact_final
         if m_to_km(v_impact_final) < 15.0:
-            thermal_text += "No fireball is created, therefore, there is no thermal radiation damage.\n"
+            thermal_text += f"{get_translation('effectMessages.noFireball', 'No fireball is created, therefore, there is no thermal radiation damage.')}\n"
             phi_ground = 0.0
         else:
             imp_energy, imp_energy_MT = sim.calculate_impact_energy(v_impact_final)
             phi_ground = sim.calculate_thermal_exposure(imp_energy, r_distance)
-            thermal_text += "Thermal Radiation (Ground Impact):\n"
-            thermal_text += f"Calculated thermal exposure at {r_distance:.2f} km: {phi_ground:.2e} J/m²\n"
+            thermal_text += f"{get_translation('effectSections.thermalRadiationGroundImpact', 'Thermal Radiation (Ground Impact)')}:\n"
+            thermal_text += f"{get_translation('effectDescriptions.calculatedThermalExposure', 'Calculated thermal exposure at')} {r_distance:.2f} km: {phi_ground:.2e} J/m²\n"
             thermal_cat_ground = get_thermal_damage_category(phi_ground)
-            thermal_text += f"Thermal Effect Category at {r_distance:.2f} km: {thermal_cat_ground}\n"
+            thermal_text += f"{get_translation('effectDescriptions.thermalEffectCategory', 'Thermal Effect Category at')} {r_distance:.2f} km: {thermal_cat_ground}\n"
             
             # Add fireball characteristics for ground impact
             R_f_ground = sim.calculate_fireball_radius(imp_energy)
             T_t_ground = sim.calculate_time_of_max_radiation(R_f_ground, v_impact_final)
             tau_t_ground = sim.calculate_irradiation_duration(imp_energy, R_f_ground)
             
-            thermal_text += f"Fireball radius: {R_f_ground:.2f} m\n"
-            thermal_text += f"Time of maximum radiation: {T_t_ground:.2f} s\n"
-            thermal_text += f"Irradiation duration: {tau_t_ground:.2f} s\n"
+            thermal_text += f"{get_translation('effectDescriptions.fireballRadius', 'Fireball radius')}: {R_f_ground:.2f} m\n"
+            thermal_text += f"{get_translation('effectDescriptions.timeOfMaxRadiation', 'Time of maximum radiation')}: {T_t_ground:.2f} s\n"
+            thermal_text += f"{get_translation('effectDescriptions.irradiationDuration', 'Irradiation duration')}: {tau_t_ground:.2f} s\n"
             
             # Calculate scaled thresholds and find maximum distances
             previous_bound = 0.0
             thermal_zones = []
             
-            for desc, phi_1Mt in SELECTED_THERMAL_THRESHOLDS:
+            for desc, phi_1Mt in get_selected_thermal_thresholds():
                 # Calculate scaled threshold for this impact energy
                 scaled_threshold = sim.calculate_ignition_exposure(imp_energy_MT, phi_1Mt * 1e6)
                 
@@ -372,7 +373,6 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
                     thermal_zones.append((desc, previous_bound, max_dist))
                     previous_bound = max_dist
         
-            thermal_text += "\nThermal Danger Zones:\n"
             for desc, lower, upper in thermal_zones:
                 thermal_text += f"{desc}: {lower:.2f} km - {upper:.2f} km\n"
             
@@ -382,10 +382,10 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
         D_m = km_to_m(r_distance)
 
         if v_airburst is None or z_b is None:
-            thermal_text += "Asteroid likely burned up completely; no significant thermal radiation at the surface.\n"
+            thermal_text += f"{get_translation('effectMessages.burnedUpCompletely', 'Asteroid likely burned up completely')}; {get_translation('effectMessages.noThermalRadiation', 'no significant thermal radiation at the surface.')}\n"
             phi = 0.0
         elif m_to_km(v_airburst) < 15.0:
-            thermal_text += "No fireball is created, therefore, there is no thermal radiation damage.\n"
+            thermal_text += f"{get_translation('effectMessages.noFireball', 'No fireball is created, therefore, there is no thermal radiation damage.')}\n"
             phi = 0.0
         else:
             # --- Airburst thermal radiation (unchanged) ---
@@ -396,19 +396,19 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
             airburst_energy_joules_for_thermal = max(KE_post_for_airburst_thermal, KE_internal_for_airburst_thermal)
 
             phi = sim.calculate_airburst_thermal_flux(airburst_energy_joules_for_thermal, z_b, D_m)
-            thermal_text += "Thermal Radiation (Airburst):\n"
-            thermal_text += f"Calculated thermal flux density at {r_distance:.2f} km: {phi:.2e} J/m²\n"
+            thermal_text += f"{get_translation('effectSections.thermalRadiationAirburst', 'Thermal Radiation (Airburst)')}:\n"
+            thermal_text += f"{get_translation('effectDescriptions.calculatedThermalFlux', 'Calculated thermal flux density at')} {r_distance:.2f} km: {phi:.2e} J/m²\n"
             thermal_cat_airburst = get_thermal_damage_category(phi)
-            thermal_text += f"Thermal Effect Category at {r_distance:.2f} km: {thermal_cat_airburst}\n"
+            thermal_text += f"{get_translation('effectDescriptions.thermalEffectCategory', 'Thermal Effect Category at')} {r_distance:.2f} km: {thermal_cat_airburst}\n"
             
             # Airburst calculations use airburst_energy_joules_for_thermal and breakup velocity (v_airburst)
             R_f_airburst = sim.calculate_fireball_radius(airburst_energy_joules_for_thermal)
             T_t_airburst = sim.calculate_time_of_max_radiation(R_f_airburst, v_airburst)
             tau_t_airburst = sim.calculate_irradiation_duration(airburst_energy_joules_for_thermal, R_f_airburst)
             
-            thermal_text += f"Fireball radius: {R_f_airburst:.2f} m\n"
-            thermal_text += f"Time of maximum radiation: {T_t_airburst:.2f} s\n"
-            thermal_text += f"Irradiation duration: {tau_t_airburst:.2f} s\n"
+            thermal_text += f"{get_translation('effectDescriptions.fireballRadius', 'Fireball radius')}: {R_f_airburst:.2f} m\n"
+            thermal_text += f"{get_translation('effectDescriptions.timeOfMaxRadiation', 'Time of maximum radiation')}: {T_t_airburst:.2f} s\n"
+            thermal_text += f"{get_translation('effectDescriptions.irradiationDuration', 'Irradiation duration')}: {tau_t_airburst:.2f} s\n"
             
             E_MT = convert_energy_j_to_mt(airburst_energy_joules_for_thermal)
             def find_airburst_thermal_max_distance(threshold):
@@ -431,14 +431,13 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
             previous_bound = 0.0
             thermal_zones = []
             
-            for desc, phi_1Mt in SELECTED_THERMAL_THRESHOLDS:
+            for desc, phi_1Mt in get_selected_thermal_thresholds():
                 scaled_threshold = sim.calculate_ignition_exposure(E_MT, phi_1Mt * 1e6)
                 max_dist = find_airburst_thermal_max_distance(scaled_threshold)
                 if max_dist > previous_bound:
                     # Remove the m_to_km conversion - distances are already in km
                     thermal_zones.append((desc, previous_bound, max_dist))
                     previous_bound = max_dist
-            thermal_text += "\nThermal Danger Zones:\n"
             for desc, lower, upper in thermal_zones:
                 thermal_text += f"{desc}: {lower:.2f} km - {upper:.2f} km\n"
     # Seismic Effects
@@ -449,12 +448,11 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
         M = sim.calculate_seismic_magnitude(imp_energy)
         M_eff = sim.calculate_effective_seismic_magnitude(M, r_distance)
         T_s = sim.calculate_seismic_arrival_time(r_distance)
-        seismic_text += "Seismic Effects:\n"
-        seismic_text += f"Seismic magnitude: {M:.2f}\n"
-        seismic_text += f"Effective magnitude at {r_distance:.2f} km: {M_eff:.2f}\n"
-        seismic_text += f"Modified Mercalli Intensity at {r_distance:.2f} km: {sim.map_magnitude_to_mmi(M_eff)}\n"
-        seismic_text += f"Seismic arrival time at {r_distance:.2f} km: {T_s:.2f} s\n"
-        seismic_text += f"\nSeismic Danger Zones:\n"
+        seismic_text += f"{get_translation('effectSections.seismicEffects', 'Seismic Effects')}:\n"
+        seismic_text += f"{get_translation('effectDescriptions.seismicMagnitude', 'Seismic magnitude')}: {M:.2f}\n"
+        seismic_text += f"{get_translation('effectDescriptions.effectiveMagnitude', 'Effective magnitude at')} {r_distance:.2f} km: {M_eff:.2f}\n"
+        seismic_text += f"{get_translation('effectDescriptions.modifiedMercalliIntensity', 'Modified Mercalli Intensity at')} {r_distance:.2f} km: {sim.map_magnitude_to_mmi(M_eff)}\n"
+        seismic_text += f"{get_translation('effectDescriptions.seismicArrivalTime', 'Seismic arrival time at')} {r_distance:.2f} km: {T_s:.2f} s\n"
         def find_seismic_max_distance(threshold):
             low = 0.01
             high = 20000
@@ -470,7 +468,7 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
                     high = mid
             return best
         previous_max = 0.0
-        for desc, thresh in SEISMIC_THRESHOLDS:
+        for desc, thresh in get_seismic_thresholds():
             current_max = find_seismic_max_distance(thresh)
             if current_max == 0.01 and sim.calculate_effective_seismic_magnitude(M, 0.01) < thresh:
                 zone_str = "None"
@@ -481,20 +479,19 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
                 previous_max = current_max
             seismic_text += f"{desc}: {zone_str}\n"
     else:
-        seismic_text += "Airburst event: no seismic effects.\n"
+        seismic_text += f"{get_translation('effectMessages.noSeismicAirburst', 'Airburst event: no seismic effects.')}\n"
     # Ejecta
     ejecta_text = ""
     if entry_results["event_type"] == "ground impact":
         t_e = sim.calculate_ejecta_thickness(D_tc, r_distance)
         d_mean = sim.calculate_mean_fragment_diameter(D_fr, r_distance)
         T_ejecta = sim.calculate_ejecta_arrival_time(r_distance)
-        ejecta_text += "Ejecta Deposit:\n"
-        ejecta_text += f"Ejecta thickness at {r_distance:.2f} km: {t_e:.4f} m\n"
+        ejecta_text += f"{get_translation('effectSections.ejectaDeposit', 'Ejecta Deposit')}:\n"
+        ejecta_text += f"{get_translation('effectDescriptions.ejectaThickness', 'Ejecta thickness')} {get_translation('translations.at', 'at')} {r_distance:.2f} km: {t_e:.4f} m\n"
         ejecta_cat = get_ejecta_damage_category(t_e)
-        ejecta_text += f"Ejecta Category at {r_distance:.2f} km: {ejecta_cat}\n"
-        ejecta_text += f"Mean fragment diameter at {r_distance:.2f} km: {d_mean:.2f} m\n"
-        ejecta_text += f"Ejecta arrival time at {r_distance:.2f} km: {T_ejecta:.2f} s\n" if T_ejecta is not None else f"Ejecta arrival time at {r_distance:.2f} km: N/A\n"
-        ejecta_text += f"\nEjecta Danger Zones:\n"
+        ejecta_text += f"{get_translation('effectDescriptions.ejectaDamageCategory', 'Ejecta Damage Category')} {get_translation('translations.at', 'at')} {r_distance:.2f} km: {ejecta_cat}\n"
+        ejecta_text += f"{get_translation('effectDescriptions.meanFragmentDiameter', 'Mean fragment diameter at')} {r_distance:.2f} km: {d_mean:.2f} m\n"
+        ejecta_text += f"{get_translation('effectDescriptions.ejectaArrivalTime', 'Ejecta arrival time at')} {r_distance:.2f} km: {T_ejecta:.2f} s\n" if T_ejecta is not None else f"{get_translation('effectDescriptions.ejectaArrivalTime', 'Ejecta arrival time at')} {r_distance:.2f} km: N/A\n"
         def find_ejecta_max_distance(threshold):
             low = 0.01
             high = 20000
@@ -510,7 +507,7 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
                     high = mid
             return best
         previous_max = 0.0
-        for desc, thresh in EJECTA_THRESHOLDS:
+        for desc, thresh in get_ejecta_thresholds():
             current_max = find_ejecta_max_distance(thresh)
             if current_max == 0.01 and sim.calculate_ejecta_thickness(D_tc, 0.01) < thresh:
                 zone_str = "None"
@@ -521,7 +518,7 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
                 previous_max = current_max
             ejecta_text += f"{desc}: {zone_str}\n"
     else:
-        ejecta_text += "Airburst event: no ejecta computed.\n"
+        ejecta_text += f"{get_translation('effectMessages.noEjectaAirburst', 'Airburst event: no ejecta.')}\n"
     # Airblast Effects
     airblast_text = ""
     D_m = km_to_m(r_distance)
@@ -539,12 +536,12 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
             p_overpressure = sim.calculate_overpressure_ground_new(D_m, imp_energy)
         wind_velocity = sim.calculate_peak_wind_velocity(p_overpressure)
         damage_zone = sim.calculate_damage_category(p_overpressure)
-        airblast_text += "Ground Impact Air Blast:\n"
-        airblast_text += f"Overpressure: {p_overpressure:.2f} Pa\n"
-        airblast_text += f"Damage Category: {damage_zone}\n"
+        airblast_text += f"{get_translation('effectDescriptions.groundImpactAirBlast', 'Ground Impact Air Blast')}:\n"
+        airblast_text += f"{get_translation('effectDescriptions.overpressure', 'Overpressure')}: {p_overpressure:.2f} Pa\n"
+        airblast_text += f"{get_translation('effectDescriptions.damageCategory', 'Damage Category')}: {damage_zone}\n"
         I, intensity_db = sim.calculate_sound_intensity(p_overpressure, wind_velocity)
-        airblast_text += f"Sound Intensity: {I:.2e} J/m²\n"
-        airblast_text += f"SPL: {intensity_db:.2f} dB\n"
+        airblast_text += f"{get_translation('effectDescriptions.soundIntensity', 'Sound Intensity')}: {I:.2e} J/m²\n"
+        airblast_text += f"{get_translation('effectDescriptions.spl', 'SPL')}: {intensity_db:.2f} dB\n"
     elif entry_results["event_type"] == "airburst":
         mass = density * (4.0/3.0) * math.pi * ((sim.diameter/2)**3)
         KE_initial = 0.5 * mass * (sim.v0)**2
@@ -555,24 +552,23 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
                                                              entry_results["airburst_altitude"],
                                                              airburst_energy,
                                                              entry_results["z_star"])
-        airblast_text += "Airburst Air Blast:\n"
+        airblast_text += f"{get_translation('effectDescriptions.airburstAirBlast', 'Airburst Air Blast')}:\n"
         if r_distance > 3 * m_to_km(entry_results["airburst_altitude"]):
-            airblast_text += f"Overpressure: {p_overpressure:.2f} Pa\n"
+            airblast_text += f"{get_translation('effectDescriptions.overpressure', 'Overpressure')}: {p_overpressure:.2f} Pa\n"
         else:
             p_range_min = p_overpressure
             p_range_max = p_overpressure * 2
-            airblast_text += f"Overpressure: {p_range_min:.2f} - {p_range_max:.2f} Pa\n"
+            airblast_text += f"{get_translation('effectDescriptions.overpressure', 'Overpressure')}: {p_range_min:.2f} - {p_range_max:.2f} Pa\n"
         wind_velocity = sim.calculate_peak_wind_velocity(p_overpressure)
         damage_zone = sim.calculate_damage_category(p_overpressure)
-        airblast_text += f"Damage Category: {damage_zone}\n"
+        airblast_text += f"{get_translation('effectDescriptions.damageCategory', 'Damage Category')}: {damage_zone}\n"
         I, intensity_db = sim.calculate_sound_intensity(p_overpressure, wind_velocity)
-        airblast_text += f"Sound Intensity: {I:.2e} J/m²\n"
-        airblast_text += f"SPL: {intensity_db:.2f} dB\n"
+        airblast_text += f"{get_translation('effectDescriptions.soundIntensity', 'Sound Intensity')}: {I:.2e} J/m²\n"
+        airblast_text += f"{get_translation('effectDescriptions.spl', 'SPL')}: {intensity_db:.2f} dB\n"
     T_b = sim.calculate_blast_arrival_time(D_m, burst_altitude_m=entry_results.get("airburst_altitude"))
-    airblast_text += f"\nBlast arrival time: {T_b:.2f} s\n"
+    airblast_text += f"\n{get_translation('effectDescriptions.blastArrivalTime', 'Blast arrival time')}: {T_b:.2f} s\n"
     
     # Add blast zone calculations to airblast text
-    airblast_text += "\nBlast Danger Zones:\n"
     def find_blast_max_distance(threshold):
         low = 0.01
         high = 20000
@@ -632,7 +628,7 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
             return 0.0
 
     previous_max = 0.0
-    for desc, thresh in BLAST_THRESHOLDS:
+    for desc, thresh in get_blast_thresholds():
         current_max = find_blast_max_distance(thresh)
 
         zone_text_to_add = ""
@@ -660,12 +656,12 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
     # Add Peak Wind Velocity calculated at r_distance (from Airblast section)
     # This assumes 'wind_velocity' variable from the Airblast section is correctly scoped and holds the value at r_distance.
     if 'wind_velocity' in locals() or 'wind_velocity' in globals():
-        wind_effects_content += f"Peak wind velocity at {r_distance:.2f} km: {wind_velocity:.2f} m/s\n"
+        wind_effects_content += f"{get_translation('effectDescriptions.windVelocity', 'Wind velocity')} {get_translation('translations.at', 'at')} {r_distance:.2f} km: {wind_velocity:.2f} m/s\n"
         wind_cat = get_wind_damage_category(wind_velocity)
-        wind_effects_content += f"EF Scale Category at {r_distance:.2f} km: {wind_cat}\n"
+        wind_effects_content += f"{get_translation('effectDescriptions.efScaleCategory', 'EF Scale Category')} {get_translation('translations.at', 'at')} {r_distance:.2f} km: {wind_cat}\n"
     else:
-        wind_effects_content += f"Peak wind velocity at {r_distance:.2f} km: Not calculated (likely no significant overpressure).\n"
-        wind_effects_content += f"EF Scale Category at {r_distance:.2f} km: Below EF0\n"
+        wind_effects_content += f"{get_translation('effectDescriptions.windVelocity', 'Wind velocity')} {get_translation('translations.at', 'at')} {r_distance:.2f} km: Not calculated (likely no significant overpressure).\n"
+        wind_effects_content += f"{get_translation('effectDescriptions.efScaleCategory', 'EF Scale Category')} {get_translation('translations.at', 'at')} {r_distance:.2f} km: Below EF0\n"
 
     # Helper function to find max distance for a given wind speed threshold
     def find_wind_ef_scale_max_distance(wind_speed_threshold_mps):
@@ -742,7 +738,7 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
         return 0.0 # If best_distance_km remained 0 or initial checks failed
 
     # Sort EF_WIND_THRESHOLDS by severity (descending min_mps) to process strongest winds first
-    sorted_ef_thresholds_desc = sorted(EF_WIND_THRESHOLDS, key=lambda x: x[1][0], reverse=True)
+    sorted_ef_thresholds_desc = sorted(get_ef_wind_thresholds(), key=lambda x: x[1][0], reverse=True)
     
     previous_ef_max_km = 0.0
     
@@ -779,15 +775,21 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
         tsunami_results_data = tsunami_calc # Store for results_data
 
         if tsunami_calc["error_message"]:
-            tsunami_text += f"Tsunami calculation error: {tsunami_calc['error_message']}\n"
+            error_prefix = get_translation('tsunamiResults.calculationError', 'Tsunami calculation error')
+            tsunami_text += f"{error_prefix}: {tsunami_calc['error_message']}\n"
         elif tsunami_calc["is_on_land"]:
-            tsunami_text += "Impact on land: No tsunami generated.\n"
+            tsunami_text += get_translation('tsunamiResults.noTsunamiOnLand', 'Impact on land: No tsunami generated.') + "\n"
             if tsunami_calc.get('ocean_depth') is not None: # ocean_depth might be 0 if on land
-                 tsunami_text += f"Note: Ocean depth at location reported as {tsunami_calc['ocean_depth']:.2f} m.\n"
+                 depth_value = f"{tsunami_calc['ocean_depth']:.2f}"
+                 note_template = get_translation('tsunamiResults.oceanDepthNote', 'Note: Ocean depth at location reported as {depth} m.')
+                 tsunami_text += note_template.format(depth=depth_value) + "\n"
         else:
-            tsunami_text += f"Ocean depth at impact: {tsunami_calc['ocean_depth']:.2f} m\n"
-            tsunami_text += f"Transient cavity diameter in water: {tsunami_calc['transient_cavity_diameter_water']:.2f} m\n"
-            tsunami_text += f"Max amplitude at source: {tsunami_calc['max_amplitude_at_source']:.2f} m\n"
+            ocean_depth_template = get_translation('tsunamiResults.oceanDepthAtImpact', 'Ocean depth at impact: {depth} m')
+            tsunami_text += ocean_depth_template.format(depth=f"{tsunami_calc['ocean_depth']:.2f}") + "\n"
+            cavity_template = get_translation('tsunamiResults.transientCavityDiameterWater', 'Transient cavity diameter in water: {diameter} m')
+            tsunami_text += cavity_template.format(diameter=f"{tsunami_calc['transient_cavity_diameter_water']:.2f}") + "\n"
+            max_amp_template = get_translation('tsunamiResults.maxAmplitudeAtSource', 'Max amplitude at source: {amplitude} m')
+            tsunami_text += max_amp_template.format(amplitude=f"{tsunami_calc['max_amplitude_at_source']:.2f}") + "\n"
 
             if tsunami_calc['max_amplitude_at_source'] > 0 and tsunami_calc['transient_cavity_diameter_water'] > 0:
                 amplitude_at_r_distance = sim.calculate_tsunami_amplitude_at_distance(
@@ -795,12 +797,11 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
                     tsunami_calc['transient_cavity_diameter_water'],
                     km_to_m(r_distance) # r_distance is the user input distance in km
                 )
-                tsunami_text += f"Amplitude at {r_distance:.2f} km: {amplitude_at_r_distance:.2f} m\n"
+                amplitude_label = get_translation('tsunamiResults.amplitudeLabel', 'Amplitude')
+                tsunami_text += f"{amplitude_label} {get_translation('translations.at', 'at')} {r_distance:.2f} km: {amplitude_at_r_distance:.2f} m\n"
                 if tsunami_results_data: # Should always be true here as it's tsunami_calc
                     tsunami_results_data['amplitude_at_r_distance'] = amplitude_at_r_distance
 
-            tsunami_text += "\nTsunami Danger Zones:\n"
-            
             def find_tsunami_max_distance(amplitude_threshold_m):
                 if tsunami_calc['max_amplitude_at_source'] <= amplitude_threshold_m:
                     return 0.0
@@ -841,7 +842,7 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
                         pass
                 return best_distance_km
 
-            sorted_tsunami_thresholds = sorted(TSUNAMI_AMPLITUDE_THRESHOLDS, key=lambda x: x[1], reverse=True)
+            sorted_tsunami_thresholds = sorted(get_tsunami_amplitude_thresholds(), key=lambda x: x[1], reverse=True)
             
             if 'zones' not in tsunami_results_data:
                 tsunami_results_data['zones'] = []
@@ -887,54 +888,54 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
         # These should be available from their respective calculation blocks above.
 
         v_pressure = sim.calculate_overpressure_vulnerability(p_overpressure) # p_overpressure at r_distance
-        vuln_model_text_lines.append(f"Overpressure Vulnerability: {v_pressure:.4f}")
+        vuln_model_text_lines.append(f"{get_translation('vulnerabilityLabels.overpressureVulnerability', 'Overpressure Vulnerability')}: {v_pressure:.4f}")
 
         v_wind = sim.calculate_wind_vulnerability(wind_velocity) # wind_velocity at r_distance
-        vuln_model_text_lines.append(f"Wind Vulnerability: {v_wind:.4f}")
+        vuln_model_text_lines.append(f"{get_translation('vulnerabilityLabels.windVulnerability', 'Wind Vulnerability')}: {v_wind:.4f}")
 
         v_thermal = sim.calculate_thermal_vulnerability(phi_ground) # phi_ground at r_distance
-        vuln_model_text_lines.append(f"Thermal Vulnerability: {v_thermal:.4f}")
+        vuln_model_text_lines.append(f"{get_translation('vulnerabilityLabels.thermalVulnerability', 'Thermal Vulnerability')}: {v_thermal:.4f}")
 
         v_seismic = sim.calculate_seismic_vulnerability(M_eff) # M_eff at r_distance
-        vuln_model_text_lines.append(f"Seismic Vulnerability: {v_seismic:.4f}")
+        vuln_model_text_lines.append(f"{get_translation('vulnerabilityLabels.seismicVulnerability', 'Seismic Vulnerability')}: {v_seismic:.4f}")
 
         # Ensure D_tc is calculated if not already available for t_e calculation context
         # D_tc was calculated in the "Crater & Melt" section
         v_ejecta = sim.calculate_ejecta_vulnerability(t_e) # t_e at r_distance
-        vuln_model_text_lines.append(f"Ejecta Vulnerability: {v_ejecta:.4f}")
+        vuln_model_text_lines.append(f"{get_translation('vulnerabilityLabels.ejectaVulnerability', 'Ejecta Vulnerability')}: {v_ejecta:.4f}")
         
         combined_vuln = 1.0 - (
             (1.0 - v_pressure) * (1.0 - v_wind) * (1.0 - v_thermal) *
             (1.0 - v_seismic) * (1.0 - v_ejecta)
         )
-        vuln_model_text_lines.append(f"Combined Vulnerability: {combined_vuln:.4f}")
+        vuln_model_text_lines.append(f"{get_translation('vulnerabilityLabels.combinedVulnerability', 'Combined Vulnerability')}: {combined_vuln:.4f}")
 
     elif entry_results["event_type"] == "airburst":
         # Ensure p_overpressure, wind_velocity, phi are the values at r_distance
 
         v_pressure = sim.calculate_overpressure_vulnerability(p_overpressure) # p_overpressure at r_distance
-        vuln_model_text_lines.append(f"Overpressure Vulnerability: {v_pressure:.4f}")
+        vuln_model_text_lines.append(f"{get_translation('vulnerabilityLabels.overpressureVulnerability', 'Overpressure Vulnerability')}: {v_pressure:.4f}")
 
         v_wind = sim.calculate_wind_vulnerability(wind_velocity) # wind_velocity at r_distance
-        vuln_model_text_lines.append(f"Wind Vulnerability: {v_wind:.4f}")
+        vuln_model_text_lines.append(f"{get_translation('vulnerabilityLabels.windVulnerability', 'Wind Vulnerability')}: {v_wind:.4f}")
 
         v_thermal = sim.calculate_thermal_vulnerability(phi) # phi at r_distance (for airburst)
-        vuln_model_text_lines.append(f"Thermal Vulnerability: {v_thermal:.4f}")
+        vuln_model_text_lines.append(f"{get_translation('vulnerabilityLabels.thermalVulnerability', 'Thermal Vulnerability')}: {v_thermal:.4f}")
 
-        vuln_model_text_lines.append("Seismic Vulnerability: N/A")
-        vuln_model_text_lines.append("Ejecta Vulnerability: N/A")
+        vuln_model_text_lines.append(f"{get_translation('vulnerabilityLabels.seismicVulnerability', 'Seismic Vulnerability')}: N/A")
+        vuln_model_text_lines.append(f"{get_translation('vulnerabilityLabels.ejectaVulnerability', 'Ejecta Vulnerability')}: N/A")
         
         combined_vuln = 1.0 - (
             (1.0 - v_pressure) * (1.0 - v_wind) * (1.0 - v_thermal)
         )
-        vuln_model_text_lines.append(f"Combined Vulnerability: {combined_vuln:.4f}")
+        vuln_model_text_lines.append(f"{get_translation('vulnerabilityLabels.combinedVulnerability', 'Combined Vulnerability')}: {combined_vuln:.4f}")
     else: # E.g., "intact" event type if it doesn't fit ground impact or airburst logic for these effects
-        vuln_model_text_lines.append("Overpressure Vulnerability: N/A")
-        vuln_model_text_lines.append("Wind Vulnerability: N/A")
-        vuln_model_text_lines.append("Thermal Vulnerability: N/A")
-        vuln_model_text_lines.append("Seismic Vulnerability: N/A")
-        vuln_model_text_lines.append("Ejecta Vulnerability: N/A")
-        vuln_model_text_lines.append("Combined Vulnerability: N/A")
+        vuln_model_text_lines.append(f"{get_translation('vulnerabilityLabels.overpressureVulnerability', 'Overpressure Vulnerability')}: N/A")
+        vuln_model_text_lines.append(f"{get_translation('vulnerabilityLabels.windVulnerability', 'Wind Vulnerability')}: N/A")
+        vuln_model_text_lines.append(f"{get_translation('vulnerabilityLabels.thermalVulnerability', 'Thermal Vulnerability')}: N/A")
+        vuln_model_text_lines.append(f"{get_translation('vulnerabilityLabels.seismicVulnerability', 'Seismic Vulnerability')}: N/A")
+        vuln_model_text_lines.append(f"{get_translation('vulnerabilityLabels.ejectaVulnerability', 'Ejecta Vulnerability')}: N/A")
+        vuln_model_text_lines.append(f"{get_translation('vulnerabilityLabels.combinedVulnerability', 'Combined Vulnerability')}: N/A")
 
     vuln_text_for_output = "\n" + "\n".join(vuln_model_text_lines) + "\n"
     # Replace the old placeholder vuln_text (which was just "\n")

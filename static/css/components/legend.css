@@ -1,0 +1,9 @@
+/* Dynamic legend / zone toggles */
+.zone-legend { display:flex; flex-wrap:wrap; gap:.55rem .65rem; margin-top:1.25rem; }
+.zone-pill { --pill-color: var(--primary-color); position:relative; display:inline-flex; align-items:center; gap:.45rem; padding:.5rem .85rem .45rem; border-radius:999px; font-size:.6rem; letter-spacing:.18em; text-transform:uppercase; font-weight:600; background:linear-gradient(120deg, rgba(255,107,53,0.22), rgba(255,158,53,0.22)); border:1px solid rgba(255,107,53,0.45); color:#fff; cursor:pointer; transition:.5s; backdrop-filter:blur(4px); }
+.zone-pill::before { content:""; width:10px; height:10px; border-radius:50%; background: var(--pill-color); box-shadow:0 0 0 2px rgba(255,255,255,0.08), 0 0 8px -1px var(--pill-color); }
+.zone-pill.active { background:linear-gradient(120deg, var(--pill-color), var(--secondary-color)); box-shadow:0 6px 18px -6px var(--pill-color); }
+.zone-pill:hover { transform:translateY(-3px); }
+
+.legend-collapser { display:flex; align-items:center; gap:.5rem; font-size:.6rem; letter-spacing:.18em; text-transform:uppercase; font-weight:600; color:#fff; opacity:.7; cursor:pointer; margin-top:.5rem; transition:.45s; }
+.legend-collapser:hover { opacity:1; }

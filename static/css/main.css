@@ -12,9 +12,40 @@
 @import url('components/map.css');
 @import url('components/loading.css');
 @import url('components/vulnerability.css');
+@import url('components/language-switcher.css'); /* kept - styles moved to component file */
+@import url('components/alert.css');
 
 /* Layout and Responsive */
 @import url('layout.css');
 
 /* Utilities */
 @import url('utilities.css');
+
+/* Responsive adjustments for mobile */
+@media (max-width: 768px) {
+  .top-header {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+  
+  .language-switcher {
+    order: 2;
+  }
+  
+  .about-btn {
+    order: 3;
+  }
+  
+  .ntua-logo-container {
+    order: 1;
+  }
+}
+
+@media (max-width: 576px) {
+  .flag-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 1em;
+  }
+}

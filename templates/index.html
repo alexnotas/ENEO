@@ -3,11 +3,11 @@
 <head>
   <!-- Standard HTML head elements: character set, viewport, title, and stylesheets -->
   <meta charset="UTF-8" />
-  <title>ENEO - Evaluating Near Earth Objects Impacts</title>
+  <title>ENEO: Asteroid Impact Simulator - NTUA</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="ENEO: A web-based simulator to evaluate and visualize the impact effects of Near Earth Objects (NEOs) on population and economy. Calculate asteroid impact scenarios, including crater size, airblast, thermal radiation, and seismic effects." />
-  <meta name="keywords" content="NEO, Near Earth Object, asteroid impact, meteor, impact simulation, ENEO, asteroid simulator, impact effects, crater calculation, space, astronomy, risk assessment, population impact, economic impact" />
-  <meta name="author" content="NTUA" />
+  <meta name="description" content="ENEO: An advanced asteroid impact simulator from NTUA to model and visualize Near Earth Object (NEO) collision scenarios. Calculate and map asteroid impact effects like craters, airblasts, and tsunamis. A project of the School of Mining and Metallurgical Engineering (metal.ntua.gr)." />
+  <meta name="keywords" content="ENEO, asteroid impact simulator, asteroid simulator, asteroid launcher, NEO simulator, asteroid impact, meteor impact, crater calculator, risk assessment, NTUA, metal.ntua.gr, National Technical University of Athens, space, astronomy, impact effects, population impact, economic impact" />
+  <meta name="author" content="Alexandros Notas, NTUA" />
   <meta name="robots" content="index, follow" />
   
   <!-- External CSS libraries: Bootstrap for styling, Material Design Icons, Google Fonts -->
@@ -32,10 +32,10 @@
   <!-- Loading Overlay: Displayed during simulation processing -->
   <div class="loading-overlay">
     <div class="loading-spinner"></div>
-    <div class="loading-message">
+    <div class="loading-message" id="loadingMessage">
       Running asteroid impact simulation...
     </div>
-    <div class="loading-tip">
+    <div class="loading-tip" id="loadingTip">
       This may take a few moments while we calculate impact effects and population data.
     </div>
   </div>
@@ -53,9 +53,19 @@
              class="ntua-logo">
       </div>
 
+      <!-- Language Switcher -->
+      <div class="language-switcher">
+        <button type="button" class="btn flag-btn" onclick="switchLanguage('en')" id="englishFlag">
+          <img src="https://flagcdn.com/w20/us.png" srcset="https://flagcdn.com/w40/us.png 2x" width="20" alt="English">
+        </button>
+        <button type="button" class="btn flag-btn" onclick="switchLanguage('el')" id="greekFlag">
+          <img src="https://flagcdn.com/w20/gr.png" srcset="https://flagcdn.com/w40/gr.png 2x" width="20" alt="Ελληνικά">
+        </button>
+      </div>
+
       <!-- About Button -->
-      <button type="button" class="btn about-btn" data-bs-toggle="modal" data-bs-target="#aboutModal" aria-label="About ENEO">
-        <i class="mdi mdi-information-outline me-1"></i> About
+      <button type="button" class="btn about-btn" data-bs-toggle="modal" data-bs-target="#aboutModal" id="aboutBtn">
+        <i class="mdi mdi-information-outline me-1"></i><span id="aboutBtnText">About</span>
       </button>
     </header>
 
@@ -67,21 +77,21 @@
           <i class="mdi mdi-meteor text-danger me-2"></i>
           <span class="text-gradient">ENEO</span>
         </h1>
-        <p class="lead fw-bold">Evaluating Near Earth Objects Impacts</p>
-        <p class="description-text">Calculate immediate NEO impact effects on population and economy</p>
+        <p class="lead fw-bold" id="appSubtitle">Evaluating Near Earth Objects Impacts</p>
+        <p class="description-text" id="appDescription">Calculate immediate NEO impact effects on population and economy</p>
       </div>
 
       <!-- Parameter Group: Asteroid Characteristics -->
       <div class="parameter-group">
-        <h3 class="mb-4">
-          <i class="mdi mdi-tune-variant icon-badge"></i>Simulation Parameters
+        <h3 class="mb-4" id="simulationParametersTitle">
+          <i class="mdi mdi-tune-variant icon-badge"></i><span id="simulationParametersText">Simulation Parameters</span>
         </h3>
         <!-- Form for submitting simulation parameters -->
         <form id="simulationForm">
           <div class="row g-4">
             <!-- Diameter Input -->
             <div class="col-md-6">
-              <label class="form-label">Diameter (meters)</label>
+              <label class="form-label" id="diameterLabel">Diameter (meters)</label>
               <input
                 type="number"
                 class="form-control form-control-lg"
@@ -91,12 +101,12 @@
                 placeholder="e.g., 50"
                 min="1"
               />
-              <div class="input-hint">Typical range: 10m - 10km</div>
+              <div class="input-hint" id="diameterHint">Typical range: 10m - 10km</div>
             </div>
 
             <!-- Density Input -->
             <div class="col-md-6">
-              <label class="form-label">Density (kg/m³)</label>
+              <label class="form-label" id="densityLabel">Density (kg/m³)</label>
               <div class="input-group">
                 <input
                   type="number"
@@ -112,16 +122,17 @@
                   type="button"
                   class="btn btn-outline-secondary"
                   onclick="document.getElementById('density').value = 3000"
+                  id="resetDensityBtn"
                 >
                   Reset
                 </button>
               </div>
-              <div class="input-hint">Stony asteroids: 2500-3500 kg/m³</div>
+              <div class="input-hint" id="densityHint">Stony asteroids: 2500-3500 kg/m³</div>
             </div>
 
             <!-- Velocity Input -->
             <div class="col-md-4">
-              <label class="form-label">Velocity (km/s)</label>
+              <label class="form-label" id="velocityLabel">Velocity (km/s)</label>
               <input
                 type="number"
                 class="form-control form-control-lg"
@@ -132,12 +143,12 @@
                 min="11"
                 max="72"
               />
-              <div class="input-hint">Earth impact: 11-72 km/s</div>
+              <div class="input-hint" id="velocityHint">Earth impact: 11-72 km/s</div>
             </div>
 
             <!-- Entry Angle Input -->
             <div class="col-md-4">
-              <label class="form-label">Entry Angle (°)</label>
+              <label class="form-label" id="entryAngleLabel">Entry Angle (°)</label>
               <input
                 type="number"
                 class="form-control form-control-lg"
@@ -148,12 +159,12 @@
                 min="15"
                 max="90"
               />
-              <div class="input-hint">15° = shallow, 90° = vertical</div>
+              <div class="input-hint" id="entryAngleHint">15° = shallow, 90° = vertical</div>
             </div>
 
             <!-- Distance Input for Analysis -->
             <div class="col-md-4">
-              <label class="form-label">Distance (km)</label>
+              <label class="form-label" id="distanceLabel">Distance (km)</label>
               <input
                 type="number"
                 class="form-control form-control-lg"
@@ -163,21 +174,22 @@
                 placeholder="e.g., 100"
                 min="1"
               />
-              <div class="input-hint">Reference distance from impact point for analysis</div>
+              <div class="input-hint" id="distanceHint">Reference distance from impact point for analysis</div>
             </div>
           </div>
 
           <!-- Action Buttons: Run Simulation and Generate Sample Data -->
           <div class="text-center mt-4">
-            <button type="submit" class="btn btn-primary btn-lg px-5">
-              <i class="mdi mdi-rocket-launch"></i> Run Simulation
+            <button type="submit" class="btn btn-primary btn-lg px-5" id="runSimulationBtn">
+              <i class="mdi mdi-rocket-launch"></i><span id="runSimulationText"> Run Simulation</span>
             </button>
             <button
               type="button"
               class="btn btn-outline-secondary btn-lg px-5 ms-2"
               onclick="loadSampleData()"
+              id="generateNeoBtn"
             >
-              <i class="mdi mdi-test-tube"></i> Generate a NEO
+              <i class="mdi mdi-test-tube"></i><span id="generateNeoText"> Generate a NEO</span>
             </button>
             <!-- A new button to fetch data from NASA Sentry API. -->
             <button
@@ -186,7 +198,7 @@
               id="nasaDataBtn"
               onclick="loadNasaData()"
             >
-              <i class="mdi mdi-satellite-variant"></i> Get data from NASA
+              <i class="mdi mdi-satellite-variant"></i><span id="nasaDataText"> Get data from NASA</span>
             </button>
           </div>
         </form>
@@ -194,41 +206,41 @@
 
       <!-- Parameter Group: Impact Location Selection -->
       <div class="parameter-group">
-        <h3 class="mb-4">
-          <i class="mdi mdi-map-marker"></i> Impact Location
+        <h3 class="mb-4" id="impactLocationTitle">
+          <i class="mdi mdi-map-marker"></i><span id="impactLocationText"> Impact Location</span>
         </h3>
         <!-- Interactive Map for selecting impact coordinates -->
         <div id="map"></div>
         <!-- Map Controls: Radio buttons for selecting zone types to display -->
         <div class="map-controls mt-3">
-          <div class="btn-group" role="group" aria-label="Zone type selector for map display">
+          <div class="btn-group" role="group" id="zoneTypeGroup">
             <input type="radio" class="btn-check" name="zonetype" id="zoneNone" value="none" checked>
-            <label class="btn btn-outline-primary" for="zoneNone">None</label>
+            <label class="btn btn-outline-primary" for="zoneNone" id="zoneNoneLabel">None</label>
             
             <input type="radio" class="btn-check" name="zonetype" id="zoneCrater" value="crater">
-            <label class="btn btn-outline-primary" for="zoneCrater">Crater</label>
+            <label class="btn btn-outline-primary" for="zoneCrater" id="zoneCraterLabel">Crater</label>
             
             <input type="radio" class="btn-check" name="zonetype" id="zoneAirblast" value="airblast">
-            <label class="btn btn-outline-primary" for="zoneAirblast">Overpressure</label>
+            <label class="btn btn-outline-primary" for="zoneAirblast" id="zoneOverpressureLabel">Overpressure</label>
             
             <input type="radio" class="btn-check" name="zonetype" id="zoneWind" value="wind">
-            <label class="btn btn-outline-primary" for="zoneWind">Wind</label>
+            <label class="btn btn-outline-primary" for="zoneWind" id="zoneWindLabel">Wind</label>
             
             <input type="radio" class="btn-check" name="zonetype" id="zoneThermal" value="thermal">
-            <label class="btn btn-outline-primary" for="zoneThermal">Thermal</label>
+            <label class="btn btn-outline-primary" for="zoneThermal" id="zoneThermalLabel">Thermal</label>
             
             <input type="radio" class="btn-check" name="zonetype" id="zoneSeismic" value="seismic">
-            <label class="btn btn-outline-primary" for="zoneSeismic">Seismic</label>
+            <label class="btn btn-outline-primary" for="zoneSeismic" id="zoneSeismicLabel">Seismic</label>
             
             <input type="radio" class="btn-check" name="zonetype" id="zoneEjecta" value="ejecta">
-            <label class="btn btn-outline-primary" for="zoneEjecta">Ejecta</label>
+            <label class="btn btn-outline-primary" for="zoneEjecta" id="zoneEjectaLabel">Ejecta</label>
             
             <input type="radio" class="btn-check" name="zonetype" id="zoneVulnerability" value="vulnerability">
-            <label class="btn btn-outline-primary" for="zoneVulnerability">Vulnerability</label>
+            <label class="btn btn-outline-primary" for="zoneVulnerability" id="zoneVulnerabilityLabel">Vulnerability</label>
           </div>
         </div>
         <div class="text-center">
-          <small class="text-white">Click on the map to set impact location</small>
+          <small class="text-white" id="clickMapText">Click on the map to set impact location</small>
         </div>
         <input type="hidden" id="latitude" name="latitude" />
         <input type="hidden" id="longitude" name="longitude" />
@@ -236,14 +248,14 @@
 
       <!-- Add this dropdown div after the map controls btn-group -->
       <div id="vulnerabilitySelectorDiv" style="display: none; margin-top: 15px; padding: 15px; background: rgba(45, 45, 45, 0.8); border-radius: 10px; border-left: 4px solid var(--primary-color);">
-        <label for="vulnerabilityTypeSelect" class="form-label" style="color: var(--secondary-color); margin-bottom: 8px; font-weight: 500;">Select Vulnerability Type:</label>
+        <label for="vulnerabilityTypeSelect" class="form-label" id="vulnerabilityTypeLabel" style="color: var(--secondary-color); margin-bottom: 8px; font-weight: 500;">Select Vulnerability Type:</label>
         <select id="vulnerabilityTypeSelect" class="form-select" style="background: rgba(45, 45, 45, 0.9); border: 1px solid var(--primary-color); color: var(--text-primary);">
-          <option value="vulnerability_combined" selected>Combined Vulnerability</option>
-          <option value="vulnerability_thermal">Thermal-Induced Vulnerability</option>
-          <option value="vulnerability_overpressure">Overpressure-Induced Vulnerability</option>
-          <option value="vulnerability_seismic">Seismic-Induced Vulnerability</option>
-          <option value="vulnerability_ejecta">Ejecta-Induced Vulnerability</option>
-          <option value="vulnerability_wind">Wind-Induced Vulnerability</option>
+          <option value="vulnerability_combined" selected id="vulnCombinedOption">Combined Vulnerability</option>
+          <option value="vulnerability_overpressure" id="vulnOverpressureOption">Overpressure-Induced Vulnerability</option>
+          <option value="vulnerability_wind" id="vulnWindOption">Wind-Induced Vulnerability</option>
+          <option value="vulnerability_thermal" id="vulnThermalOption">Thermal-Induced Vulnerability</option>
+          <option value="vulnerability_seismic" id="vulnSeismicOption">Seismic-Induced Vulnerability</option>
+          <option value="vulnerability_ejecta" id="vulnEjectaOption">Ejecta-Induced Vulnerability</option>
         </select>
       </div>
     </div> <!-- End of Simulation Input Card -->
@@ -252,8 +264,8 @@
     <div id="resultsContainer" class="d-none">
       <!-- Impact Overview Section: Key metrics of the impact event -->
       <div class="impact-visual text-center mb-5">
-        <h2 class="mb-4">
-          <i class="mdi mdi-chart-areaspline"></i> Impact Overview
+        <h2 class="mb-4" id="impactOverviewTitle">
+          <i class="mdi mdi-chart-areaspline"></i><span id="impactOverviewText"> Impact Overview</span>
         </h2>
         <div class="row" id="impactOverviewContent">
           <!-- Dynamically populated with energy, velocity, crater size -->
@@ -274,43 +286,43 @@
 
       <!-- Detailed Impact Effects Card -->
       <div class="result-card p-4">
-        <h3 class="mb-4">
-          <i class="mdi mdi-alert-octagon icon-badge"></i>Impact Effects
+        <h3 class="mb-4" id="impactEffectsTitle">
+          <i class="mdi mdi-alert-octagon icon-badge"></i><span id="impactEffectsText">Impact Effects</span>
         </h3>
         <!-- Tab navigation for different effect categories -->
         <nav>
           <div class="nav nav-tabs" id="nav-tab" role="tablist">
-            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#nav-overpressure" type="button">
-              <i class="mdi mdi-air-filter"></i> Overpressure
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#nav-overpressure" type="button" id="tabOverpressure">
+              <i class="mdi mdi-air-filter"></i><span id="tabOverpressureText"> Overpressure</span>
             </button>
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-wind" type="button">
-              <i class="mdi mdi-weather-windy"></i> Wind
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-wind" type="button" id="tabWind">
+              <i class="mdi mdi-weather-windy"></i><span id="tabWindText"> Wind</span>
             </button>
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-thermal" type="button">
-              <i class="mdi mdi-fire"></i> Thermal
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-thermal" type="button" id="tabThermal">
+              <i class="mdi mdi-fire"></i><span id="tabThermalText"> Thermal</span>
             </button>
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-seismic" type="button">
-              <i class="mdi mdi-earth"></i> Seismic
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-seismic" type="button" id="tabSeismic">
+              <i class="mdi mdi-earth"></i><span id="tabSeismicText"> Seismic</span>
             </button>
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-ejecta" type="button">
-              <i class="mdi mdi-meteor"></i> Ejecta
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-ejecta" type="button" id="tabEjecta">
+              <i class="mdi mdi-meteor"></i><span id="tabEjectaText"> Ejecta</span>
             </button>
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-tsunami" type="button">
-              <i class="mdi mdi-tsunami"></i> Tsunami
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-tsunami" type="button" id="tabTsunami">
+              <i class="mdi mdi-tsunami"></i><span id="tabTsunamiText"> Tsunami</span>
             </button>
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-vulnerability" type="button">
-              <i class="mdi mdi-alert-octagon"></i> Vulnerability
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-vulnerability" type="button" id="tabVulnerability">
+              <i class="mdi mdi-alert-octagon"></i><span id="tabVulnerabilityText"> Vulnerability</span>
             </button>
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-population" type="button">
-              <i class="mdi mdi-account-group"></i> Population
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-population" type="button" id="tabPopulation">
+              <i class="mdi mdi-account-group"></i><span id="tabPopulationText"> Population</span>
             </button>
             <!-- Countries Tab: Displays impact breakdown by affected countries -->
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-countries" type="button">
-              <i class="mdi mdi-flag"></i> Countries
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-countries" type="button" id="tabCountries">
+              <i class="mdi mdi-flag"></i><span id="tabCountriesText"> Countries</span>
             </button>
             <!-- Economic Impact Tab: Shows estimated economic damage -->
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-economic" type="button">
-              <i class="mdi mdi-currency-usd"></i> Economic
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#nav-economic" type="button" id="tabEconomic">
+              <i class="mdi mdi-currency-usd"></i><span id="tabEconomicText"> Economic</span>
             </button>
           </div>
         </nav>
@@ -351,9 +363,9 @@
           <!-- Population Impact Panel -->
           <div class="tab-pane fade" id="nav-population">
             <div class="population-card mb-4">
-              <h4 class="mb-3">Total Estimated Casualties</h4>
+              <h4 class="mb-3" id="totalCasualtiesTitle">Total Estimated Casualties</h4>
               <div class="h2 text-danger mb-3" id="totalCasualties">-</div>
-              <small class="text-muted text-highlight-orange">Based on population density and vulnerability zones</small>
+              <small class="text-muted text-highlight-orange" id="populationNote">Based on population density and vulnerability zones</small>
             </div>
             <div class="row g-4" id="populationResults">
               <!-- Population impact results populated by JavaScript -->
@@ -362,8 +374,8 @@
           <!-- Affected Countries Panel -->
           <div class="tab-pane fade" id="nav-countries">
             <div class="country-summary mb-4">
-              <h4>Affected Countries</h4>
-              <small class="text-muted text-highlight-orange">Impact breakdown by country based on geographic boundaries</small>
+              <h4 id="affectedCountriesTitle">Affected Countries</h4>
+              <small class="text-muted text-highlight-orange" id="countriesNote">Impact breakdown by country based on geographic boundaries</small>
             </div>
             <div class="row g-4" id="countriesResults">
               <!-- Country-specific results populated by JavaScript -->
@@ -372,9 +384,9 @@
           <!-- Economic Impact Panel -->
           <div class="tab-pane fade" id="nav-economic">
             <div class="economy-summary mb-4">
-              <h4>Economic Impact Assessment</h4>
+              <h4 id="economicImpactTitle">Economic Impact Assessment</h4>
               <div class="h2 text-danger mb-3" id="totalEconomicDamage">-</div>
-              <small class="text-muted text-highlight-orange">Estimated economic damage based on casualties and GDP per capita</small>
+              <small class="text-muted text-highlight-orange" id="economicNote">Estimated economic damage based on casualties and GDP per capita</small>
             </div>
             <div class="row g-4" id="economicResults">
               <!-- Economic impact results populated by JavaScript -->
@@ -393,25 +405,601 @@
   <!-- Custom application JavaScript -->
   <script src="{{ url_for('static', filename='js/script.js') }}"></script>
   
+  <!-- Translation Loader -->
+  <script>
+    let translations = {};
+    let currentLanguage = 'en';
+    let en = {}; // Keep for compatibility with existing script.js
+    
+    // Load available languages
+    const availableLanguages = ['en', 'el'];
+    
+    // Initialize language system
+    async function initializeLanguages() {
+      // Load all translation files
+      for (const lang of availableLanguages) {
+        try {
+          const response = await fetch(`{{ url_for("static", filename="translations/") }}${lang}.json`);
+          const data = await response.json();
+          translations[lang] = data;
+          
+          // Set en for compatibility
+          if (lang === 'en') {
+            en = data;
+          }
+        } catch (error) {
+          console.error(`Error loading ${lang} translations:`, error);
+        }
+      }
+      
+      // Always start with English as default
+      currentLanguage = 'en';
+      
+      // Only override if user has explicitly saved a different preference
+      const savedLanguage = localStorage.getItem('preferredLanguage');
+      if (savedLanguage && availableLanguages.includes(savedLanguage)) {
+        currentLanguage = savedLanguage;
+      }
+      
+      // Apply initial translations
+      applyTranslations();
+      updateLanguageButtons();
+      
+      // Trigger initialization callback
+      if (window.__init_after_en__) window.__init_after_en__();
+    }
+    
+    // Switch language function
+    function switchLanguage(language) {
+      if (!availableLanguages.includes(language) || !translations[language]) {
+        console.error(`Language ${language} not available`);
+        return;
+      }
+      
+      currentLanguage = language;
+      localStorage.setItem('preferredLanguage', language);
+      
+      // Update en object for compatibility
+      en = translations[language];
+      
+      // Update page language attribute
+      document.documentElement.lang = language;
+      
+      // Apply translations
+      applyTranslations();
+      updateLanguageButtons();
+      
+      // Hide the results container to reset the view to the initial state
+      const resultsContainer = document.getElementById('resultsContainer');
+      if (resultsContainer && !resultsContainer.classList.contains('d-none')) {
+        resultsContainer.classList.add('d-none');
+        // Also clear any previously drawn zones on the map
+        if (window.clearAllZones) {
+          window.clearAllZones();
+        }
+      }
+    }
+    
+    // Update flag button states
+    function updateLanguageButtons() {
+      // Remove active class from all flag buttons
+      document.querySelectorAll('.flag-btn').forEach(btn => btn.classList.remove('active'));
+      
+      // Add active class to current language button
+      if (currentLanguage === 'en') {
+        document.getElementById('englishFlag').classList.add('active');
+      } else if (currentLanguage === 'el') {
+        document.getElementById('greekFlag').classList.add('active');
+      }
+    }
+    
+    // Get translation with fallback
+    function resolveTranslation(obj, segments) {
+      if (!obj) {
+        return undefined;
+      }
+      let current = obj;
+      for (let i = 0; i < segments.length; i++) {
+        if (!current || typeof current !== 'object') {
+          return undefined;
+        }
+        const segment = segments[i];
+        if (segment in current) {
+          current = current[segment];
+          continue;
+        }
+        const remainingKey = segments.slice(i).join('.').trim();
+        if (remainingKey && remainingKey in current) {
+          return current[remainingKey];
+        }
+        return undefined;
+      }
+      return current;
+    }
+
+    function t(key, fallback = '') {
+      const segments = key.split('.');
+      let value = resolveTranslation(translations[currentLanguage], segments);
+      if (value === undefined) {
+        value = resolveTranslation(translations['en'], segments);
+      }
+      return value !== undefined ? value : fallback;
+    }
+
+    // Debug function to test translations
+    window.testTranslations = function() {
+      console.log('Current language:', currentLanguage);
+      console.log('Test threshold translation:', t('thresholds.blast.glassWindows', 'Glass windows shatter'));
+      console.log('Test results translation:', t('results.impactOverview', 'Impact Overview'));
+      console.log('Available translations:', Object.keys(translations));
+    }
+
+    function applyTranslations() {
+      const currentTranslations = translations[currentLanguage] || translations['en'] || {};
+      
+      // Meta tags
+      const pageTitle = document.getElementById('pageTitle');
+      const pageDescription = document.getElementById('pageDescription');
+      const pageKeywords = document.getElementById('pageKeywords');
+      
+      if (pageTitle && currentTranslations.app?.title) {
+        pageTitle.textContent = currentTranslations.app.title;
+      }
+      if (pageDescription && currentTranslations.app?.metaDescription) {
+        pageDescription.content = currentTranslations.app.metaDescription;
+      }
+      if (pageKeywords && currentTranslations.app?.metaKeywords) {
+        pageKeywords.content = currentTranslations.app.metaKeywords;
+      }
+
+      // Loading overlay
+      const loadingMessage = document.getElementById('loadingMessage');
+      const loadingTip = document.getElementById('loadingTip');
+      
+      if (loadingMessage && currentTranslations.loading?.runningSimulation) {
+        loadingMessage.textContent = currentTranslations.loading.runningSimulation;
+      }
+      if (loadingTip && currentTranslations.loading?.calculatingEffects) {
+        loadingTip.textContent = currentTranslations.loading.calculatingEffects;
+      }
+
+      // Main content
+      const aboutBtnText = document.getElementById('aboutBtnText');
+      const appSubtitle = document.getElementById('appSubtitle');
+      const appDescription = document.getElementById('appDescription');
+      
+      if (aboutBtnText && currentTranslations.buttons?.about) {
+        aboutBtnText.textContent = currentTranslations.buttons.about;
+      }
+      if (appSubtitle && currentTranslations.app?.subtitle) {
+        appSubtitle.textContent = currentTranslations.app.subtitle;
+      }
+      if (appDescription && currentTranslations.app?.description) {
+        appDescription.textContent = currentTranslations.app.description;
+      }
+
+      // Form elements
+      const simulationParametersText = document.getElementById('simulationParametersText');
+      const diameterLabel = document.getElementById('diameterLabel');
+      const densityLabel = document.getElementById('densityLabel');
+      const velocityLabel = document.getElementById('velocityLabel');
+      const entryAngleLabel = document.getElementById('entryAngleLabel');
+      const distanceLabel = document.getElementById('distanceLabel');
+      
+      if (simulationParametersText && currentTranslations.forms?.simulationParameters) {
+        simulationParametersText.textContent = currentTranslations.forms.simulationParameters;
+      }
+      if (diameterLabel && currentTranslations.forms?.diameterLabel) {
+        diameterLabel.textContent = currentTranslations.forms.diameterLabel;
+      }
+      if (densityLabel && currentTranslations.forms?.densityLabel) {
+        densityLabel.textContent = currentTranslations.forms.densityLabel;
+      }
+      if (velocityLabel && currentTranslations.forms?.velocityLabel) {
+        velocityLabel.textContent = currentTranslations.forms.velocityLabel;
+      }
+      if (entryAngleLabel && currentTranslations.forms?.entryAngleLabel) {
+        entryAngleLabel.textContent = currentTranslations.forms.entryAngleLabel;
+      }
+      if (distanceLabel && currentTranslations.forms?.distanceLabel) {
+        distanceLabel.textContent = currentTranslations.forms.distanceLabel;
+      }
+
+      // Placeholders
+      const diameter = document.getElementById('diameter');
+      const density = document.getElementById('density');
+      const velocity = document.getElementById('velocity');
+      const entry_angle = document.getElementById('entry_angle');
+      const distance = document.getElementById('distance');
+      
+      if (diameter && currentTranslations.placeholders?.diameter) {
+        diameter.placeholder = currentTranslations.placeholders.diameter;
+      }
+      if (density && currentTranslations.placeholders?.density) {
+        density.placeholder = currentTranslations.placeholders.density;
+      }
+      if (velocity && currentTranslations.placeholders?.velocity) {
+        velocity.placeholder = currentTranslations.placeholders.velocity;
+      }
+      if (entry_angle && currentTranslations.placeholders?.entryAngle) {
+        entry_angle.placeholder = currentTranslations.placeholders.entryAngle;
+      }
+      if (distance && currentTranslations.placeholders?.distance) {
+        distance.placeholder = currentTranslations.placeholders.distance;
+      }
+
+      // Continue with other translations...
+      // Hints
+      const diameterHint = document.getElementById('diameterHint');
+      const densityHint = document.getElementById('densityHint');
+      const velocityHint = document.getElementById('velocityHint');
+      const entryAngleHint = document.getElementById('entryAngleHint');
+      const distanceHint = document.getElementById('distanceHint');
+      
+      if (diameterHint && currentTranslations.hints?.typicalRange) {
+        diameterHint.textContent = currentTranslations.hints.typicalRange;
+      }
+      if (densityHint && currentTranslations.hints?.stonyAsteroids) {
+        densityHint.textContent = currentTranslations.hints.stonyAsteroids;
+      }
+      if (velocityHint && currentTranslations.hints?.earthImpact) {
+        velocityHint.textContent = currentTranslations.hints.earthImpact;
+      }
+      if (entryAngleHint && currentTranslations.hints?.shallowVertical) {
+        entryAngleHint.textContent = currentTranslations.hints.shallowVertical;
+      }
+      if (distanceHint && currentTranslations.hints?.referenceDistance) {
+        distanceHint.textContent = currentTranslations.hints.referenceDistance;
+      }
+
+      // Buttons
+      const resetDensityBtn = document.getElementById('resetDensityBtn');
+      const runSimulationText = document.getElementById('runSimulationText');
+      const generateNeoText = document.getElementById('generateNeoText');
+      const nasaDataText = document.getElementById('nasaDataText');
+      
+      if (resetDensityBtn && currentTranslations.buttons?.reset) {
+        resetDensityBtn.textContent = currentTranslations.buttons.reset;
+      }
+      if (runSimulationText && currentTranslations.buttons?.runSimulation) {
+        runSimulationText.textContent = currentTranslations.buttons.runSimulation;
+      }
+      if (generateNeoText && currentTranslations.buttons?.generateNeo) {
+        generateNeoText.textContent = currentTranslations.buttons.generateNeo;
+      }
+      if (nasaDataText && currentTranslations.buttons?.getNasaData) {
+        nasaDataText.textContent = currentTranslations.buttons.getNasaData;
+      }
+
+      // Results section titles
+      const impactOverviewText = document.getElementById('impactOverviewText');
+      const impactEffectsText = document.getElementById('impactEffectsText');
+      
+      if (impactOverviewText && currentTranslations.results?.impactOverview) {
+        impactOverviewText.textContent = ' ' + currentTranslations.results.impactOverview;
+      }
+      if (impactEffectsText && currentTranslations.results?.impactEffects) {
+        impactEffectsText.textContent = currentTranslations.results.impactEffects;
+      }
+
+      // Map section
+      const impactLocationText = document.getElementById('impactLocationText');
+      const clickMapText = document.getElementById('clickMapText');
+      
+      if (impactLocationText && currentTranslations.forms?.impactLocation) {
+        impactLocationText.textContent = currentTranslations.forms.impactLocation;
+      }
+      if (clickMapText && currentTranslations.messages?.clickToSetLocation) {
+        clickMapText.textContent = currentTranslations.messages.clickToSetLocation;
+      }
+
+      // Zone labels
+      const zoneNoneLabel = document.getElementById('zoneNoneLabel');
+      const zoneCraterLabel = document.getElementById('zoneCraterLabel');
+      const zoneOverpressureLabel = document.getElementById('zoneOverpressureLabel');
+      const zoneWindLabel = document.getElementById('zoneWindLabel');
+      const zoneThermalLabel = document.getElementById('zoneThermalLabel');
+      const zoneSeismicLabel = document.getElementById('zoneSeismicLabel');
+      const zoneEjectaLabel = document.getElementById('zoneEjectaLabel');
+      const zoneVulnerabilityLabel = document.getElementById('zoneVulnerabilityLabel');
+      
+      if (zoneNoneLabel && currentTranslations.zones?.none) {
+        zoneNoneLabel.textContent = currentTranslations.zones.none;
+      }
+      if (zoneCraterLabel && currentTranslations.zones?.crater) {
+        zoneCraterLabel.textContent = currentTranslations.zones.crater;
+      }
+      if (zoneOverpressureLabel && currentTranslations.zones?.overpressure) {
+        zoneOverpressureLabel.textContent = currentTranslations.zones.overpressure;
+      }
+      if (zoneWindLabel && currentTranslations.zones?.wind) {
+        zoneWindLabel.textContent = currentTranslations.zones.wind;
+      }
+      if (zoneThermalLabel && currentTranslations.zones?.thermal) {
+        zoneThermalLabel.textContent = currentTranslations.zones.thermal;
+      }
+      if (zoneSeismicLabel && currentTranslations.zones?.seismic) {
+        zoneSeismicLabel.textContent = currentTranslations.zones.seismic;
+      }
+      if (zoneEjectaLabel && currentTranslations.zones?.ejecta) {
+        zoneEjectaLabel.textContent = currentTranslations.zones.ejecta;
+      }
+      if (zoneVulnerabilityLabel && currentTranslations.zones?.vulnerability) {
+        zoneVulnerabilityLabel.textContent = currentTranslations.zones.vulnerability;
+      }
+
+      // Tab text translations
+      const tabOverpressureText = document.getElementById('tabOverpressureText');
+      const tabWindText = document.getElementById('tabWindText');
+      const tabThermalText = document.getElementById('tabThermalText');
+      const tabSeismicText = document.getElementById('tabSeismicText');
+      const tabEjectaText = document.getElementById('tabEjectaText');
+      const tabTsunamiText = document.getElementById('tabTsunamiText');
+      const tabVulnerabilityText = document.getElementById('tabVulnerabilityText');
+      const tabPopulationText = document.getElementById('tabPopulationText');
+      const tabCountriesText = document.getElementById('tabCountriesText');
+      const tabEconomicText = document.getElementById('tabEconomicText');
+      
+      if (tabOverpressureText && currentTranslations.tabs?.overpressure) {
+        tabOverpressureText.textContent = ' ' + currentTranslations.tabs.overpressure;
+      }
+      if (tabWindText && currentTranslations.tabs?.wind) {
+        tabWindText.textContent = ' ' + currentTranslations.tabs.wind;
+      }
+      if (tabThermalText && currentTranslations.tabs?.thermal) {
+        tabThermalText.textContent = ' ' + currentTranslations.tabs.thermal;
+      }
+      if (tabSeismicText && currentTranslations.tabs?.seismic) {
+        tabSeismicText.textContent = ' ' + currentTranslations.tabs.seismic;
+      }
+      if (tabEjectaText && currentTranslations.tabs?.ejecta) {
+        tabEjectaText.textContent = ' ' + currentTranslations.tabs.ejecta;
+      }
+      if (tabTsunamiText && currentTranslations.tabs?.tsunami) {
+        tabTsunamiText.textContent = ' ' + currentTranslations.tabs.tsunami;
+      }
+      if (tabVulnerabilityText && currentTranslations.tabs?.vulnerability) {
+        tabVulnerabilityText.textContent = ' ' + currentTranslations.tabs.vulnerability;
+      }
+      if (tabPopulationText && currentTranslations.tabs?.population) {
+        tabPopulationText.textContent = ' ' + currentTranslations.tabs.population;
+      }
+      if (tabCountriesText && currentTranslations.tabs?.countries) {
+        tabCountriesText.textContent = ' ' + currentTranslations.tabs.countries;
+      }
+      if (tabEconomicText && currentTranslations.tabs?.economic) {
+        tabEconomicText.textContent = ' ' + currentTranslations.tabs.economic;
+      }
+
+      // About modal content
+      const aboutModalTitle = document.getElementById('aboutModalTitle');
+      const aboutDescription1 = document.getElementById('aboutDescription1');
+      const aboutDescription2 = document.getElementById('aboutDescription2');
+      const aboutDescription3 = document.getElementById('aboutDescription3');
+      const aboutCraterFormation = document.getElementById('aboutCraterFormation');
+      const aboutAirblastOverpressure = document.getElementById('aboutAirblastOverpressure');
+      const aboutWindSpeed = document.getElementById('aboutWindSpeed');
+      const aboutThermalRadiation = document.getElementById('aboutThermalRadiation');
+      const aboutSeismicWaves = document.getElementById('aboutSeismicWaves');
+  const aboutOxfordComma = document.getElementById('aboutOxfordComma');
+      const aboutEjectaDistribution = document.getElementById('aboutEjectaDistribution');
+      const aboutAnd = document.getElementById('aboutAnd');
+      const aboutProvidingTool = document.getElementById('aboutProvidingTool');
+      const aboutVulnerabilityNote = document.getElementById('aboutVulnerabilityNote');
+      const aboutVulnerability = document.getElementById('aboutVulnerability');
+      const aboutZonesNote = document.getElementById('aboutZonesNote');
+      const aboutGettingStarted = document.getElementById('aboutGettingStarted');
+      const aboutGenerateNeoButton = document.getElementById('aboutGenerateNeoButton');
+      const aboutButtonInstructions = document.getElementById('aboutButtonInstructions');
+      const aboutMobileNote = document.getElementById('aboutMobileNote');
+      const aboutCloseBottomBtn = document.getElementById('aboutCloseBottomBtn');
+      
+      if (aboutModalTitle && currentTranslations.about?.title) {
+        aboutModalTitle.textContent = currentTranslations.about.title;
+      }
+      // Allow bold markup inside description1
+      if (aboutDescription1 && currentTranslations.about?.description1) {
+        aboutDescription1.innerHTML = currentTranslations.about.description1;
+      }
+      if (aboutDescription2 && currentTranslations.about?.description2) {
+        aboutDescription2.textContent = currentTranslations.about.description2;
+      }
+      if (aboutDescription3 && currentTranslations.about?.description3) {
+        aboutDescription3.textContent = currentTranslations.about.description3;
+      }
+      if (aboutCraterFormation && currentTranslations.about?.craterFormation) {
+        aboutCraterFormation.textContent = currentTranslations.about.craterFormation;
+      }
+      if (aboutAirblastOverpressure && currentTranslations.about?.airblastOverpressure) {
+        aboutAirblastOverpressure.textContent = currentTranslations.about.airblastOverpressure;
+      }
+      if (aboutWindSpeed && currentTranslations.about?.windSpeed) {
+        aboutWindSpeed.textContent = currentTranslations.about.windSpeed;
+      }
+      if (aboutThermalRadiation && currentTranslations.about?.thermalRadiation) {
+        aboutThermalRadiation.textContent = currentTranslations.about.thermalRadiation;
+      }
+      if (aboutSeismicWaves && currentTranslations.about?.seismicWaves) {
+        aboutSeismicWaves.textContent = currentTranslations.about.seismicWaves;
+      }
+      if (aboutOxfordComma && typeof currentTranslations.about?.oxfordComma !== 'undefined') {
+        aboutOxfordComma.textContent = currentTranslations.about.oxfordComma;
+      }
+      if (aboutEjectaDistribution && currentTranslations.about?.ejectaDistribution) {
+        aboutEjectaDistribution.textContent = currentTranslations.about.ejectaDistribution;
+      }
+      if (aboutAnd && currentTranslations.about?.and) {
+        aboutAnd.textContent = currentTranslations.about.and;
+      }
+      if (aboutProvidingTool && currentTranslations.about?.providingTool) {
+        aboutProvidingTool.textContent = currentTranslations.about.providingTool;
+      }
+      if (aboutVulnerabilityNote && currentTranslations.about?.vulnerabilityNote) {
+        aboutVulnerabilityNote.textContent = currentTranslations.about.vulnerabilityNote;
+      }
+      if (aboutVulnerability && currentTranslations.about?.vulnerability) {
+        aboutVulnerability.textContent = currentTranslations.about.vulnerability;
+      }
+      if (aboutZonesNote && currentTranslations.about?.zonesNote) {
+        aboutZonesNote.textContent = currentTranslations.about.zonesNote;
+      }
+      if (aboutGettingStarted && currentTranslations.about?.gettingStarted) {
+        aboutGettingStarted.textContent = currentTranslations.about.gettingStarted;
+      }
+      if (aboutGenerateNeoButton && currentTranslations.about?.generateNeoButton) {
+        aboutGenerateNeoButton.textContent = currentTranslations.about.generateNeoButton;
+      }
+      if (aboutButtonInstructions && currentTranslations.about?.buttonInstructions) {
+        aboutButtonInstructions.textContent = currentTranslations.about.buttonInstructions;
+      }
+      if (aboutMobileNote && currentTranslations.about?.mobileNote) {
+        aboutMobileNote.textContent = currentTranslations.about.mobileNote;
+      }
+      if (aboutCloseBottomBtn && currentTranslations.buttons?.close) {
+        aboutCloseBottomBtn.textContent = currentTranslations.buttons.close;
+      }
+
+      // Footer elements
+      const footerDevelopedBy = document.getElementById('footerDevelopedBy');
+      const footerContact = document.getElementById('footerContact');
+      const footerSupervisor = document.getElementById('footerSupervisor');
+      const footerContact2 = document.getElementById('footerContact2');
+      const footerInstitution = document.getElementById('footerInstitution');
+      
+      if (footerDevelopedBy && currentTranslations.footer?.developedBy) {
+        footerDevelopedBy.textContent = currentTranslations.footer.developedBy;
+      }
+      if (footerContact && currentTranslations.footer?.contact) {
+        footerContact.textContent = currentTranslations.footer.contact;
+      }
+      if (footerSupervisor && currentTranslations.footer?.supervisor) {
+        footerSupervisor.textContent = currentTranslations.footer.supervisor;
+      }
+      if (footerContact2 && currentTranslations.footer?.contact) {
+        footerContact2.textContent = currentTranslations.footer.contact;
+      }
+      if (footerInstitution && currentTranslations.footer?.institution) {
+        footerInstitution.textContent = currentTranslations.footer.institution;
+      }
+      
+      // Set ARIA labels
+      const aboutBtn = document.getElementById('aboutBtn');
+      const aboutCloseBtn = document.getElementById('aboutCloseBtn');
+      const zoneTypeGroup = document.getElementById('zoneTypeGroup');
+      const ntuaLogo = document.querySelector('.ntua-logo');
+      
+      if (aboutBtn && currentTranslations.aria?.aboutEneo) {
+        aboutBtn.setAttribute('aria-label', currentTranslations.aria.aboutEneo);
+      }
+      if (aboutCloseBtn && currentTranslations.aria?.closeModal) {
+        aboutCloseBtn.setAttribute('aria-label', currentTranslations.aria.closeModal);
+      }
+      if (zoneTypeGroup && currentTranslations.aria?.zoneSelector) {
+        zoneTypeGroup.setAttribute('aria-label', currentTranslations.aria.zoneSelector);
+      }
+      if (ntuaLogo && currentTranslations.aria?.ntuaLogo) {
+        ntuaLogo.setAttribute('alt', currentTranslations.aria.ntuaLogo);
+      }
+
+      // Population, Countries, and Economic tabs
+      const totalCasualtiesTitle = document.getElementById('totalCasualtiesTitle');
+      const populationNote = document.getElementById('populationNote');
+      const affectedCountriesTitle = document.getElementById('affectedCountriesTitle');
+      const countriesNote = document.getElementById('countriesNote');
+      const economicImpactTitle = document.getElementById('economicImpactTitle');
+      const economicNote = document.getElementById('economicNote');
+      
+      if (totalCasualtiesTitle && currentTranslations.results?.totalCasualties) {
+        totalCasualtiesTitle.textContent = currentTranslations.results.totalCasualties;
+      }
+      if (populationNote && currentTranslations.messages?.basedOnPopulation) {
+        populationNote.textContent = currentTranslations.messages.basedOnPopulation;
+      }
+      if (affectedCountriesTitle && currentTranslations.results?.affectedCountries) {
+        affectedCountriesTitle.textContent = currentTranslations.results.affectedCountries;
+      }
+      if (countriesNote && currentTranslations.messages?.impactBreakdown) {
+        countriesNote.textContent = currentTranslations.messages.impactBreakdown;
+      }
+      if (economicImpactTitle && currentTranslations.results?.economicImpact) {
+        economicImpactTitle.textContent = currentTranslations.results.economicImpact;
+      }
+      if (economicNote && currentTranslations.messages?.estimatedDamage) {
+        economicNote.textContent = currentTranslations.messages.estimatedDamage;
+      }
+
+      // Vulnerability dropdown translations
+      const vulnerabilityTypeLabel = document.getElementById('vulnerabilityTypeLabel');
+      const vulnCombinedOption = document.getElementById('vulnCombinedOption');
+      const vulnThermalOption = document.getElementById('vulnThermalOption');
+      const vulnOverpressureOption = document.getElementById('vulnOverpressureOption');
+      const vulnSeismicOption = document.getElementById('vulnSeismicOption');
+      const vulnEjectaOption = document.getElementById('vulnEjectaOption');
+      const vulnWindOption = document.getElementById('vulnWindOption');
+      
+      if (vulnerabilityTypeLabel && currentTranslations.vulnerabilityTypes?.selectType) {
+        vulnerabilityTypeLabel.textContent = currentTranslations.vulnerabilityTypes.selectType;
+      }
+      if (vulnCombinedOption && currentTranslations.vulnerabilityTypes?.combined) {
+        vulnCombinedOption.textContent = currentTranslations.vulnerabilityTypes.combined;
+      }
+      if (vulnThermalOption && currentTranslations.vulnerabilityTypes?.thermal) {
+        vulnThermalOption.textContent = currentTranslations.vulnerabilityTypes.thermal;
+      }
+      if (vulnOverpressureOption && currentTranslations.vulnerabilityTypes?.overpressure) {
+        vulnOverpressureOption.textContent = currentTranslations.vulnerabilityTypes.overpressure;
+      }
+      if (vulnSeismicOption && currentTranslations.vulnerabilityTypes?.seismic) {
+        vulnSeismicOption.textContent = currentTranslations.vulnerabilityTypes.seismic;
+      }
+      if (vulnEjectaOption && currentTranslations.vulnerabilityTypes?.ejecta) {
+        vulnEjectaOption.textContent = currentTranslations.vulnerabilityTypes.ejecta;
+      }
+      if (vulnWindOption && currentTranslations.vulnerabilityTypes?.wind) {
+        vulnWindOption.textContent = currentTranslations.vulnerabilityTypes.wind;
+      }
+
+      // Names
+      const authorName = document.getElementById('authorName');
+      const footerAuthorName = document.getElementById('footerAuthorName');
+      const footerSupervisorName = document.getElementById('footerSupervisorName');
+      
+      if (authorName && currentTranslations.names?.alexandrosNotas) {
+        authorName.textContent = currentTranslations.names.alexandrosNotas;
+      }
+      if (footerAuthorName && currentTranslations.names?.alexandrosNotas) {
+        footerAuthorName.textContent = currentTranslations.names.alexandrosNotas;
+      }
+      if (footerSupervisorName && currentTranslations.names?.dimitriosKaliampakos) {
+        footerSupervisorName.textContent = currentTranslations.names.dimitriosKaliampakos;
+      }
+
+      // ...rest of existing translation code...
+    }
+    
+    // Initialize on DOM load
+    document.addEventListener('DOMContentLoaded', initializeLanguages);
+  </script>
+  
   <!-- About Modal -->
   <div class="modal fade" id="aboutModal" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="aboutModalLabel">
-            <i class="mdi mdi-meteor text-danger me-2"></i>About ENEO
+            <i class="mdi mdi-meteor text-danger me-2"></i><span id="aboutModalTitle">About ENEO</span>
           </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" id="aboutCloseBtn"></button>
         </div>
-        <div class="modal-body">
-          <p><strong>ENEO (Evaluating Near Earth Objects Impacts)</strong> is a web-based simulator developed as part of the diploma thesis of <span class="author-name">Alexandros Notas</span> at the School of Mining and Metallurgical Engineering, National Technical University of Athens (NTUA).</p>
-          <p>It allows users to model asteroid impact scenarios and visualize their potential effects. The simulation calculates various physical phenomena, including <span class="text-effect-crater">crater formation</span>, <span class="text-effect-overpressure">airblast overpressure</span>, <span class="text-effect-wind">wind speed</span>, <span class="text-effect-thermal">thermal radiation</span>, <span class="text-effect-seismic">seismic waves</span>, and <span class="text-effect-ejecta">ejecta distribution</span>, providing a comprehensive risk assessment tool.</p>
-          <p>Each effect is then processed for its potential <span class="text-effect-vulnerability">vulnerability</span>. These zones are used to model estimated casualties on global and national scales, and GDP per capita is used to provide a first estimate of the economic consequences.</p>
-          <p>To get started, define the impact parameters or use the <strong>'Generate a NEO'</strong> button for a quick scenario. Then, select a location on the map to simulate the impact and explore its potential effects.</p>
-          <p class="mt-3 fst-italic text-white-50"><i class="mdi mdi-cellphone-arrow-down me-1"></i>On mobile devices, remember to scroll down to view the full detailed effects (and scroll sideways until the Economic tab).</p>
+        <div class="modal-body" id="aboutModalBody">
+          <p><span id="aboutDescription1">is a web-based simulator developed as part of the diploma thesis of</span> <span class="author-name" id="authorName">Alexandros Notas</span> <span id="aboutDescription2">at the School of Mining and Metallurgical Engineering, National Technical University of Athens (NTUA).</span></p>
+          <p><span id="aboutDescription3">It allows users to model asteroid impact scenarios and visualize their potential effects. The simulation calculates various physical phenomena, including</span> <span class="text-effect-crater" id="aboutCraterFormation">crater formation</span>, <span class="text-effect-overpressure" id="aboutAirblastOverpressure">airblast overpressure</span>, <span class="text-effect-wind" id="aboutWindSpeed">wind speed</span>, <span class="text-effect-thermal" id="aboutThermalRadiation">thermal radiation</span>, <span class="text-effect-seismic" id="aboutSeismicWaves">seismic waves</span><span id="aboutOxfordComma">,</span> <span id="aboutAnd">and</span> <span class="text-effect-ejecta" id="aboutEjectaDistribution">ejecta distribution</span><span id="aboutProvidingTool">, providing a comprehensive risk assessment tool.</span></p>
+          <p><span id="aboutVulnerabilityNote">Each effect is then processed for its potential</span> <span class="text-effect-vulnerability" id="aboutVulnerability">vulnerability</span><span id="aboutZonesNote">. These zones are used to model estimated casualties on global and national scales, and GDP per capita is used to provide a first estimate of the economic consequences.</span></p>
+          <p><span id="aboutGettingStarted">To get started, define the impact parameters or use the</span> <strong id="aboutGenerateNeoButton">'Generate a NEO'</strong> <span id="aboutButtonInstructions">button for a quick scenario. Then, select a location on the map to simulate the impact and explore its potential effects.</span></p>
+          <p class="mt-3 fst-italic text-white-50"><i class="mdi mdi-cellphone-arrow-down me-1"></i><span id="aboutMobileNote">On mobile devices, remember to scroll down to view the full detailed effects (and scroll sideways until the Economic tab).</span></p>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" id="aboutCloseBottomBtn">Close</button>
         </div>
       </div>
     </div>
@@ -421,18 +1009,17 @@
   <footer class="footer">
     <div class="container py-4">
       <div class="text-center">
-        <p class="mb-1">Developed as part of the diploma thesis of</p>
-        <p class="mb-1"><span class="author-name">Alexandros Notas</span></p>
-        <p class="mb-1">Contact: 
-          <a href="mailto:alexnotas11@gmail.com">alexnotas11@gmail.com</a> | 
-          <a href="mailto:mm20037@mail.ntua.gr">mm20037@mail.ntua.gr</a>
+        <p class="mb-1" id="footerDevelopedBy">Developed as part of the diploma thesis of</p>
+        <p class="mb-1"><span class="author-name" id="footerAuthorName">Alexandros Notas</span></p>
+        <p class="mb-1"><span id="footerContact">Contact:</span> 
+          <a href="mailto:alexnotas11@gmail.com">alexnotas11@gmail.com</a> | <a href="mailto:alexnotas@metal.ntua.gr">alexnotas@metal.ntua.gr</a>
         </p>
-        <p class="mb-1">Supervisor:</p>
-        <p class="mb-1"><span class="author-name">Prof. Dimitrios Kaliampakos</span></p>
-        <p class="mb-1">Contact: 
+        <p class="mb-1" id="footerSupervisor">Supervisor:</p>
+        <p class="mb-1"><span class="author-name" id="footerSupervisorName">Prof. Dimitrios Kaliampakos</span></p>
+        <p class="mb-1"><span id="footerContact2">Contact:</span> 
           <a href="mailto:dkal@metal.ntua.gr">dkal@metal.ntua.gr</a>
         </p>
-        <p class="mb-0">School of Mining and Metallurgical Engineering, NTUA</p>
+        <p class="mb-0" id="footerInstitution">School of Mining and Metallurgical Engineering, NTUA</p>
       </div>
     </div>
   </footer>

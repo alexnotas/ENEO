@@ -47,6 +47,7 @@ TIFF_PATH = "/home/debian/flaskapp/maps/population_with_country_fid_assigned.tif
 COUNTRY_NAMES_PATH = "/home/debian/flaskapp/maps/country_fid_lookup.csv"  # Path to FID-to-name lookup if available
 WORLD_SHAPEFILE_PATH = "/home/debian/flaskapp/maps/world.shp"  # Path to world shapefile
 
+
 # Global variables to hold loaded datasets (populated at module import)
 RASTER = None  # Global population raster with country FID assignments
 WORLD_GDF = None  # World countries geodataframe

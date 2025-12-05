@@ -1,0 +1,622 @@
+/* Custom Alert Overlay */
+.custom-alert-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0; /* Add right property */
+  bottom: 0; /* Add bottom property */
+  width: 100%; /* Use 100% instead of 100vw */
+  height: 100%; /* Use 100% instead of 100vh */
+  background: rgba(26, 26, 26, 0.85);
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 11000; /* Higher than modals to ensure visibility */
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  /* Prevent scaling issues on Windows */
+  transform: none !important; /* Ensure no transform is applied */
+}
+
+.custom-alert-overlay.show {
+  opacity: 1;
+}
+
+.custom-alert-overlay.fade-out {
+  opacity: 0;
+}
+
+/* Custom Alert Box */
+.custom-alert-box {
+  background: linear-gradient(145deg, #2d2d2d 0%, #1f1f1f 100%);
+  border: 2px solid var(--primary-color);
+  border-radius: 15px;
+  padding: 2rem;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh; /* Prevent overflow on small screens */
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(255, 107, 53, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  animation: alertSlideIn 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  position: relative;
+  overflow-y: auto; /* Allow scrolling if content is too tall */
+  overflow-x: hidden;
+}
+
+.custom-alert-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--primary-color), var(--secondary-color), transparent);
+  animation: alertScan 2s linear infinite;
+}
+
+@keyframes alertSlideIn {
+  0% {
+    transform: scale(0.8) translateY(-50px);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.05) translateY(0);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes alertScan {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* Alert Icon */
+.custom-alert-icon {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-size: 3rem;
+  color: var(--primary-color);
+  text-shadow: 0 0 20px rgba(255, 107, 53, 0.6);
+  animation: alertIconPulse 2s ease-in-out infinite;
+}
+
+@keyframes alertIconPulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 10px rgba(255, 107, 53, 0.6));
+  }
+  50% {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 20px rgba(255, 107, 53, 0.8));
+  }
+}
+
+/* Alert Message */
+.custom-alert-message {
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  font-family: 'Rubik', sans-serif;
+  text-align: center;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  padding: 0 1rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Alert Button */
+.custom-alert-button {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 2rem;
+  background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 1rem;
+  font-weight: bold;
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.custom-alert-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.custom-alert-button:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.custom-alert-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 53, 0.5);
+}
+
+.custom-alert-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(255, 107, 53, 0.4);
+}
+
+.custom-alert-button:focus-visible {
+  outline: 3px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Responsive Design */
+@media (max-width: 767.98px) {
+  .custom-alert-box {
+    padding: 1.5rem 1rem;
+    border-radius: 12px;
+    width: 92%;
+    margin: 0 auto;
+  }
+  
+  .custom-alert-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .custom-alert-message {
+    font-size: 1rem;
+    padding: 0 0.5rem;
+    margin-bottom: 1.25rem;
+    line-height: 1.5;
+  }
+  
+  .custom-alert-button {
+    padding: 0.65rem 1.5rem;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 374.98px) {
+  .custom-alert-box {
+    padding: 1.25rem 0.75rem;
+    width: 95%;
+  }
+  
+  .custom-alert-icon {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .custom-alert-message {
+    font-size: 0.9rem;
+    padding: 0 0.25rem;
+    margin-bottom: 1rem;
+  }
+  
+  .custom-alert-button {
+    padding: 0.6rem 1.25rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Dark theme enhancement */
+@media (prefers-color-scheme: dark) {
+  .custom-alert-box {
+    background: linear-gradient(145deg, #2d2d2d 0%, #1a1a1a 100%);
+  }
+}
+
+/* ========================================
+   NASA DATA NOTIFICATION STYLES
+   ======================================== */
+
+/* NASA Notification Overlay */
+.nasa-notification-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0; /* Add right property */
+  bottom: 0; /* Add bottom property */
+  width: 100%; /* Use 100% instead of 100vw */
+  height: 100%; /* Use 100% instead of 100vh */
+  background: rgba(11, 61, 145, 0.15);
+  backdrop-filter: blur(3px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 11000; /* Higher than modals */
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  /* Prevent scaling issues on Windows */
+  transform: none !important; /* Ensure no transform is applied */
+}
+
+.nasa-notification-overlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.nasa-notification-overlay.fade-out {
+  opacity: 0;
+}
+
+/* NASA Notification Box */
+.nasa-notification-box {
+  background: linear-gradient(145deg, #0B3D91 0%, #1C5DB6 50%, #0B3D91 100%);
+  background-size: 200% 200%;
+  border: 2px solid rgba(252, 61, 33, 0.6);
+  border-radius: 15px;
+  padding: 2rem 2.5rem;
+  max-width: 550px;
+  width: 90%;
+  max-height: 80vh; /* Prevent overflow on small screens */
+  box-shadow: 
+    0 15px 50px rgba(11, 61, 145, 0.6),
+    0 0 30px rgba(252, 61, 33, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  animation: nasaNotificationSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow-y: auto; /* Allow scrolling if needed */
+  overflow-x: hidden;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.nasa-notification-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--nasa-red), #ffffff, var(--nasa-red), transparent);
+  animation: nasaScan 3s linear infinite;
+}
+
+.nasa-notification-box::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 0%, rgba(252, 61, 33, 0.1) 50%, transparent 100%);
+  animation: nasaShine 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes nasaNotificationSlideIn {
+  0% {
+    transform: scale(0.7) translateY(-100px) rotateX(20deg);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.05) translateY(0) rotateX(0);
+  }
+  100% {
+    transform: scale(1) translateY(0) rotateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes nasaScan {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+@keyframes nasaShine {
+  0%, 100% {
+    opacity: 0.3;
+    transform: translateX(-50%);
+  }
+  50% {
+    opacity: 0.6;
+    transform: translateX(50%);
+  }
+}
+
+/* NASA Notification Icon */
+.nasa-notification-icon {
+  font-size: 3.5rem;
+  color: #ffffff;
+  text-shadow: 
+    0 0 20px rgba(252, 61, 33, 0.8),
+    0 0 40px rgba(252, 61, 33, 0.5);
+  animation: nasaIconFloat 3s ease-in-out infinite;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+@keyframes nasaIconFloat {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-5px) rotate(-5deg);
+  }
+  75% {
+    transform: translateY(5px) rotate(5deg);
+  }
+}
+
+/* NASA Notification Message Container */
+.nasa-notification-message {
+  flex: 1;
+  z-index: 1;
+}
+
+/* NASA Notification Label */
+.nasa-notification-label {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.95rem;
+  font-family: 'Rubik', sans-serif;
+  font-weight: 400;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* NASA Notification NEO Name - STANDOUT STYLING */
+.nasa-notification-neo-name {
+  color: #ffffff;
+  font-size: 1.8rem;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #ffffff 0%, #FC3D21 50%, #ffffff 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: nasaNameGlow 3s ease-in-out infinite;
+  text-shadow: 
+    0 0 10px rgba(255, 255, 255, 0.5),
+    0 0 20px rgba(252, 61, 33, 0.5),
+    0 2px 5px rgba(0, 0, 0, 0.5);
+  filter: drop-shadow(0 0 8px rgba(252, 61, 33, 0.6));
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+@keyframes nasaNameGlow {
+  0%, 100% {
+    background-position: 0% center;
+    filter: drop-shadow(0 0 8px rgba(252, 61, 33, 0.6));
+  }
+  50% {
+    background-position: 100% center;
+    filter: drop-shadow(0 0 15px rgba(252, 61, 33, 0.9));
+  }
+}
+
+/* NASA Notification Close Button */
+.nasa-notification-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(252, 61, 33, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.nasa-notification-close:hover {
+  background: rgba(252, 61, 33, 1);
+  transform: rotate(90deg) scale(1.1);
+  box-shadow: 0 4px 12px rgba(252, 61, 33, 0.6);
+}
+
+.nasa-notification-close:active {
+  transform: rotate(90deg) scale(0.95);
+}
+
+.nasa-notification-close:focus-visible {
+  outline: 3px solid var(--nasa-red);
+  outline-offset: 2px;
+}
+
+/* Responsive Design for NASA Notification */
+@media (max-width: 767.98px) {
+  .nasa-notification-box {
+    padding: 1.5rem 1rem;
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+    width: 92%;
+    margin: 0 auto;
+  }
+  
+  .nasa-notification-icon {
+    font-size: 3rem;
+  }
+  
+  .nasa-notification-label {
+    font-size: 0.85rem;
+    margin-bottom: 0.4rem;
+  }
+  
+  .nasa-notification-neo-name {
+    font-size: 1.4rem;
+    letter-spacing: 1px;
+    line-height: 1.3;
+  }
+  
+  .nasa-notification-close {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+    top: 8px;
+    right: 8px;
+  }
+}
+
+@media (max-width: 374.98px) {
+  .nasa-notification-box {
+    padding: 1.25rem 0.75rem;
+    gap: 0.75rem;
+    width: 95%;
+  }
+  
+  .nasa-notification-icon {
+    font-size: 2.5rem;
+  }
+  
+  .nasa-notification-label {
+    font-size: 0.8rem;
+    margin-bottom: 0.3rem;
+  }
+  
+  .nasa-notification-neo-name {
+    font-size: 1.2rem;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+  }
+  
+  .nasa-notification-close {
+    width: 28px;
+    height: 28px;
+    font-size: 0.9rem;
+    top: 6px;
+    right: 6px;
+  }
+}
+
+/* Landscape orientation on mobile devices */
+@media (max-height: 500px) and (orientation: landscape) {
+  .nasa-notification-box,
+  .custom-alert-box {
+    max-height: 90vh;
+    padding: 1rem;
+  }
+  
+  .nasa-notification-icon {
+    font-size: 2rem;
+  }
+  
+  .custom-alert-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .nasa-notification-neo-name {
+    font-size: 1.2rem;
+  }
+  
+  .custom-alert-message {
+    margin-bottom: 1rem;
+  }
+}
+
+/* Touch enhancements for mobile devices */
+@media (hover: none) and (pointer: coarse) {
+  .custom-alert-button,
+  .nasa-notification-close {
+    min-height: 44px; /* iOS minimum touch target */
+    min-width: 44px;
+  }
+  
+  .custom-alert-button {
+    padding: 0.85rem 2rem;
+    font-size: 1rem;
+  }
+}
+
+/* Windows-specific adjustments to prevent scaling issues */
+/* These styles ensure notifications appear correctly on Windows */
+@media screen and (min-width: 992px) and (max-width: 1920px) {
+  /* Reset any inherited transforms from Windows scaling */
+  #app-wrapper .custom-alert-overlay,
+  #app-wrapper .nasa-notification-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    transform: none !important;
+  }
+  
+  #app-wrapper .custom-alert-box,
+  #app-wrapper .nasa-notification-box {
+    transform: none !important;
+  }
+}
+
+/* Ensure overlays are always on top and not affected by parent scaling */
+body > .custom-alert-overlay,
+body > .nasa-notification-overlay,
+#app-wrapper .custom-alert-overlay,
+#app-wrapper .nasa-notification-overlay {
+  position: fixed !important;
+  z-index: 11000 !important;
+}
+
+/* Prevent text from being too small on high-DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .custom-alert-message,
+  .nasa-notification-label {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  .nasa-notification-neo-name {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+/* Reduce motion for users with motion sensitivity */
+@media (prefers-reduced-motion: reduce) {
+  .custom-alert-box,
+  .nasa-notification-box {
+    animation: none;
+    transition: opacity 0.2s ease;
+  }
+  
+  .custom-alert-icon,
+  .nasa-notification-icon {
+    animation: none;
+  }
+  
+  .custom-alert-box::before,
+  .nasa-notification-box::before,
+  .nasa-notification-box::after {
+    animation: none;
+  }
+  
+  .nasa-notification-neo-name {
+    animation: none;
+  }
+}

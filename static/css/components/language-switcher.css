@@ -1,0 +1,87 @@
+/* Language switcher styles (moved out of main.css) */
+
+.language-switcher {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.flag-btn {
+  background: none;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 1.2em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  position: relative;
+  overflow: hidden;
+}
+
+.flag-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+.flag-btn.active {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: #ff6b35;
+  box-shadow: 0 0 10px rgba(255, 107, 53, 0.3);
+}
+
+.flag-btn:focus {
+  outline: none;
+  border-color: #ff6b35;
+  box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.2);
+}
+
+/* Split flag button: left = UK, right = US.
+   Requires two SVG files: /static/img/flags/uk.svg and /static/img/flags/us.svg */
+.flag-btn.split-flag::before,
+.flag-btn.split-flag::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  pointer-events: none;
+  filter: none;
+}
+
+.flag-btn.split-flag::before {
+  left: 0;
+  background-image: url('/static/img/flags/uk.svg');
+}
+
+.flag-btn.split-flag::after {
+  right: 0;
+  background-image: url('/static/img/flags/us.svg');
+}
+
+/* Fallback if SVGs missing: simple half-color indicator */
+.flag-btn.split-flag.no-img::before { background-image: none; background: linear-gradient(180deg,#00247d,#00247d); }
+.flag-btn.split-flag.no-img::after  { background-image: none; background: linear-gradient(180deg,#b22234,#b22234); }
+
+/* Responsive tweaks */
+@media (max-width: 768px) {
+  .language-switcher { order: 2; }
+  .about-btn { order: 3; }
+  .ntua-logo-container { order: 1; }
+}
+
+@media (max-width: 576px) {
+  .flag-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 1em;
+  }
+}

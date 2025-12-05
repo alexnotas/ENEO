@@ -1,0 +1,29 @@
+/* Generic animation & transition utilities */
+.fade-in { animation: fadeIn .85s ease forwards; opacity:0; }
+.fade-in-delayed { animation: fadeIn .85s ease .3s forwards; opacity:0; }
+.stagger-parent > * { opacity:0; transform: translateY(22px); animation: rise .8s cubic-bezier(.22,.8,.22,1) forwards; }
+.stagger-parent > *:nth-child(1){ animation-delay:.05s; }
+.stagger-parent > *:nth-child(2){ animation-delay:.12s; }
+.stagger-parent > *:nth-child(3){ animation-delay:.19s; }
+.stagger-parent > *:nth-child(4){ animation-delay:.26s; }
+.stagger-parent > *:nth-child(5){ animation-delay:.33s; }
+
+@keyframes fadeIn { to { opacity:1; } }
+@keyframes rise { to { opacity:1; transform:translateY(0);} }
+
+.sweep-border { position:relative; }
+.sweep-border::after { content:""; position:absolute; inset:0; border-radius:inherit; padding:1px; background:linear-gradient(120deg, rgba(255,107,53,0.55), rgba(255,158,53,0.35), rgba(255,107,53,0.55)); mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask-composite: exclude; -webkit-mask-composite: xor; opacity:0; transition:.65s; }
+.sweep-border:hover::after { opacity:.4; }
+
+.glow-pulse { animation: glowPulse 2.8s ease-in-out infinite; }
+@keyframes glowPulse { 0%,100% { box-shadow:0 0 0 0 rgba(255,107,53,0.0);} 35% { box-shadow:0 0 0 6px rgba(255,107,53,0.15);} 60% { box-shadow:0 0 0 0 rgba(255,107,53,0.0);} }
+
+.ripple-click { position:relative; overflow:hidden; }
+.ripple-click:active::before { content:""; position:absolute; width:220%; aspect-ratio:1; top:50%; left:50%; transform:translate(-50%,-50%); background:radial-gradient(circle, rgba(255,107,53,0.45) 0%, rgba(255,107,53,0) 70%); opacity:.8; animation: ripple .75s ease-out; }
+@keyframes ripple { to { transform:translate(-50%,-50%) scale(1); opacity:0; } }
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .fade-in, .fade-in-delayed, .stagger-parent > * { animation:none !important; opacity:1 !important; transform:none !important; }
+  .data-orb, .orb-ring { animation: none !important; }
+}
