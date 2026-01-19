@@ -20,7 +20,7 @@ Date: July 2025
 
 import math
 import rasterio # Add this import for geospatial data processing
-
+import os
 # =============================================================================
 # PHYSICAL AND ATMOSPHERIC CONSTANTS
 # =============================================================================
@@ -65,8 +65,9 @@ BURST_ALTITUDE_THRESHOLD = 1000.0
 # GEOSPATIAL DATA PATHS AND CONSTANTS
 # =============================================================================
 
-# Path to ETOPO elevation/bathymetry data file - global topographic dataset
-ETOPO_FILE_PATH = "/home/alexandros-linux/Επιφάνεια εργασίας/ENEO update tests/maps/ETOPO_2022_v1_60s_N90W180_surface.tif"
+# Path to ETOPO elevation/bathymetry data file - global topographic dataset (Use your local path here)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ETOPO_FILE_PATH = os.path.join(BASE_DIR, 'maps', "ETOPO_2022_v1_60s_N90W180_surface.tif")
 
 # Water density constant (kg/m³) - standard density of seawater for tsunami calculations
 WATER_DENSITY_CONSTANT = 1000  # kg/m^3

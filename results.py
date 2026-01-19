@@ -9,6 +9,7 @@ Key Functions:
 - collect_simulation_results(): Structures simulation data into organized result sets
 - run_simulation_full(): Executes complete impact simulation with all effects
 - find_vulnerability_distance(): Determines damage zone boundaries using binary search
+- find_specific_vulnerability_distance(): Calculates specific hazard distances (e.g., thermal, seismic)
 
 The module integrates multiple physics models to calculate crater formation, thermal
 radiation, seismic effects, airblast damage, ejecta distribution, wind effects,
@@ -1073,3 +1074,121 @@ def find_vulnerability_distance(sim, threshold, entry_results, r_min=0.01, r_max
         return best_distance_km
     else:
         return 0.0
+
+def find_specific_vulnerability_distance(sim, entry_results, vuln_type, threshold, r_min=0.01, r_max=20000.0, tol=0.01):
+    """
+    Calculates the maximum distance at which a specific vulnerability type 
+    (e.g., thermal, seismic) meets or exceeds a defined threshold.
+    
+    This function uses a binary search algorithm to efficiently find this boundary 
+    distance. Beyond this distance, the vulnerability's intensity drops below the 
+    given threshold. It accounts for different impact scenarios (ground impacts vs. airbursts) 
+    and calculates relevant vulnerability metrics for each distance evaluated.
+    
+    The binary search converges quickly, making it suitable for dynamic calculations.
+    
+    Args:
+        sim (AsteroidImpactSimulation): An initialized simulation object.
+        entry_results (dict): Results from the atmospheric entry simulation, including
+            event_type, post_breakup_velocity, airburst_altitude, v_breakup, and z_star.
+        vuln_type (str): The type of vulnerability to assess (e.g., 'thermal', 'overpressure').
+        threshold (float): The vulnerability threshold value (0.0 to 1.0).
+        r_min (float, optional): Minimum search distance in km (default: 0.01 km).
+        r_max (float, optional): Maximum search distance in km (default: 20000.0 km).
+        tol (float, optional): Tolerance for search convergence in km (default: 0.01 km).
+    
+    Returns:
+        float: The maximum distance (km) where vulnerability is ≥ threshold. 
+               Returns r_min if the threshold isn't met even at close distances.
+    
+    Mathematical Approach:
+        The binary search maintains these conditions:
+        - The left boundary (left) of the search interval represents a distance where 
+          vulnerability(distance) ≥ threshold.
+        - The right boundary (right) represents a distance where vulnerability(distance) < threshold.
+        
+        The search stops when the interval (right - left) is smaller than the tolerance.
+    
+    Details on vulnerability calculation:
+        - For Ground Impacts: Uses models based on impact energy and crater formation.
+        - For Airbursts: Employs models based on burst energy and atmospheric blast wave propagation.
+        - Returns 0.0 if a vulnerability type isn't applicable (e.g., ejecta from an airburst).
+    """
+    from utils import km_to_m, rho_target
+    
+    def calculate_specific_vulnerability_at_distance(r_km, vuln_type):
+        """Calculate vulnerability value at specific distance for given hazard type."""
+        D_m = km_to_m(r_km)  # Convert distance to meters
+        
+        # Ground impact vulnerability calculations
+        if entry_results["event_type"] == "ground impact":
+            v_surface = entry_results['post_breakup_velocity']
+            imp_energy, _ = sim.calculate_impact_energy(v_surface)
+            
+            if vuln_type == 'thermal':
+                phi_ground = sim.calculate_thermal_exposure(imp_energy, r_km)
+                return sim.calculate_thermal_vulnerability(phi_ground)
+            
+            elif vuln_type == 'overpressure':
+                p_overpressure = sim.calculate_overpressure_ground_new(D_m, imp_energy)
+                return sim.calculate_overpressure_vulnerability(p_overpressure)
+            
+            elif vuln_type == 'wind':
+                p_overpressure = sim.calculate_overpressure_ground_new(D_m, imp_energy)
+                wind_velocity = sim.calculate_peak_wind_velocity(p_overpressure)
+                return sim.calculate_wind_vulnerability(wind_velocity)
+            
+            elif vuln_type == 'seismic':
+                M = sim.calculate_seismic_magnitude(imp_energy)
+                M_eff = sim.calculate_effective_seismic_magnitude(M, r_km)
+                return sim.calculate_seismic_vulnerability(M_eff)
+            
+            elif vuln_type == 'ejecta':
+                D_tc = sim.calculate_transient_crater_diameter(v_surface, rho_target, sim.entry_angle_deg)
+                t_e = sim.calculate_ejecta_thickness(D_tc, r_km)
+                return sim.calculate_ejecta_vulnerability(t_e)
+                
+        # Airburst vulnerability calculations
+        elif entry_results["event_type"] == "airburst":
+            z_b = entry_results["airburst_altitude"]
+            mass = sim.density * (4.0/3.0) * 3.14159 * ((sim.diameter/2)**3)
+            KE_initial = 0.5 * mass * (sim.v0**2)
+            KE_post = 0.5 * mass * (entry_results["post_breakup_velocity"]**2)
+            KE_internal = KE_initial - KE_post
+            airburst_energy = max(KE_post, KE_internal)
+            
+            if vuln_type == 'thermal':
+                phi = sim.calculate_airburst_thermal_flux(airburst_energy, z_b, D_m)
+                return sim.calculate_thermal_vulnerability(phi)
+            
+            elif vuln_type == 'overpressure':
+                p_overpressure = sim.calculate_overpressure_airburst(D_m, z_b, airburst_energy, entry_results["z_star"])
+                return sim.calculate_overpressure_vulnerability(p_overpressure)
+            
+            elif vuln_type == 'wind':
+                p_overpressure = sim.calculate_overpressure_airburst(D_m, z_b, airburst_energy, entry_results["z_star"])
+                wind_velocity = sim.calculate_peak_wind_velocity(p_overpressure)
+                return sim.calculate_wind_vulnerability(wind_velocity)
+            
+            elif vuln_type == 'seismic':
+                return 0.0  # No seismic effects for airburst events
+            
+            elif vuln_type == 'ejecta':
+                return 0.0  # No ejecta for airburst events
+        
+        return 0.0  # Default case
+
+    # Binary search implementation for efficient distance finding
+    left, right = r_min, r_max
+    best_distance = r_min
+    
+    # Converge on the boundary where vulnerability meets threshold
+    while right - left > tol:
+        mid = (left + right) / 2
+        if calculate_specific_vulnerability_at_distance(mid, vuln_type) >= threshold:
+            best_distance = mid
+            left = mid  # Vulnerability still meets threshold, search further out
+        else:
+            right = mid  # Vulnerability below threshold, search closer in
+    
+    return best_distance

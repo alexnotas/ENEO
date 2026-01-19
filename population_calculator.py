@@ -42,10 +42,14 @@ from collections import defaultdict # Added for defaultdict
 # GLOBAL DATA PATHS AND CONFIGURATION
 # =============================================================================
 
-# File paths for population and country data
-TIFF_PATH = "/home/debian/flaskapp/maps/population_with_country_fid_assigned.tif"
-COUNTRY_NAMES_PATH = "/home/debian/flaskapp/maps/country_fid_lookup.csv"  # Path to FID-to-name lookup if available
-WORLD_SHAPEFILE_PATH = "/home/debian/flaskapp/maps/world.shp"  # Path to world shapefile
+# File paths for population and country data (Use your local path here)
+# dynamic path resolution
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MAPS_DIR = os.path.join(BASE_DIR, 'maps')
+
+TIFF_PATH = os.path.join(MAPS_DIR, "population_with_country_fid_assigned.tif")
+COUNTRY_NAMES_PATH = os.path.join(MAPS_DIR, "country_fid_lookup.csv")
+WORLD_SHAPEFILE_PATH = os.path.join(MAPS_DIR, "world.shp")
 
 
 # Global variables to hold loaded datasets (populated at module import)
