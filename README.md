@@ -17,8 +17,6 @@
   <strong>An advanced Near-Earth Object impact simulation platform developed in the School of Mining and Metallurgical Engineering of the National Technical University of Athens</strong>
 </p>
 
-[Features](#features) • [Installation](#installation) • [Usage](#usage) • [Documentation](#documentation) • [Contributing](#contributing)
-
 </div>
 
 ---
