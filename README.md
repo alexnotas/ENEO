@@ -213,6 +213,18 @@ http://localhost:5000
 
 3. **The application should now be running!**
 
+### ✅ Validation & Testing
+
+To ensure scientific accuracy, the simulation models (Physics & Vulnerability) are validated against established benchmarks (ARMOR, EIEP) and published literature (Rumpf et al., 2017).
+
+To reproduce the validation results:
+
+1. **Physics Validation** (Airburst & Ground Impact scenarios):
+   Run the `tests/test_physics.py` test module.
+
+2. **Vulnerability Validation** (Population casualty estimates):
+   Run the `tests/test_vulnerability.py` test module.
+
 ### Using the Simulator
 
 #### Basic Simulation
@@ -309,61 +321,9 @@ Population vulnerability calculations based on research by **C. Rumpf et al. (20
 
 ---
 
-## 🌐 API Endpoints
-
-### POST `/simulate`
-
-**Description:** Run an asteroid impact simulation
-
-**Request Body:**
-```json
-{
-  "diameter": 100,
-  "density": 3000,
-  "velocity": 20,
-  "entry_angle": 45,
-  "distance": 1000,
-  "latitude": 40.7128,
-  "longitude": -74.0060,
-  "language": "en"
-}
-```
-
-**Response:**
-```json
-{
-  "results_text": "Simulation summary...",
-  "results_data": {
-    "vulnerability_analysis": {...},
-    "population_analysis": {...},
-    "economic_analysis": {...},
-    "visualization": {...},
-    "country_visualization": {...}
-  }
-}
-```
-
-### GET `/nasa-sentry`
-
-**Description:** Fetch Near-Earth Object data from NASA's Sentry API
-
-**Response:** List of potentially hazardous asteroids with orbital parameters
-
-### GET `/ocean-depth`
-
-**Description:** Query ocean depth at specific coordinates
-
-**Parameters:** `lat`, `lon`
-
-**Response:** Ocean depth in meters (or indication if on land)
-
----
-
 ## 📄 License
 
-This project is part of academic research at the **National Technical University of Athens (NTUA)**. 
-
-For licensing information, please contact the author or the university.
+This project is part of academic research at the **National Technical University of Athens (NTUA) and has a MIT License**. 
 
 ---
 
@@ -373,7 +333,7 @@ For licensing information, please contact the author or the university.
 School of Mining and Metallurgical Engineering  
 National Technical University of Athens (NTUA)
 
-**Thesis:** *Methods of Prediction and Assessment of Asteroid Impact Consequences*  
+**Thesis:** *ENEO - Development of an application for assessing the impacts of a large-scale natural disaster caused by Near-Earth Objects.*  
 **Date:** July 2025
 
 ---
