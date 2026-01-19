@@ -35,8 +35,8 @@ logger = logging.getLogger(__name__)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MAPS_DIR = os.path.join(BASE_DIR, 'maps') # Assumes 'maps' folder is next to this script
 
-GDP_FILE = os.path.join(MAPS_DIR, "API_NY.GDP.PCAP.CD_DS2_en_csv_v2_85121.csv")
-MAPPING_FILE = os.path.join(MAPS_DIR, "excel.xlsx")
+GDP_FILE = os.path.join(MAPS_DIR, "gdp_data.csv")
+MAPPING_FILE = os.path.join(MAPS_DIR, "country_codes.xlsx")
 
 # Global variables to store loaded and processed dataframes and lookup dictionaries.
 # These are populated by load_gdp_data() to avoid redundant file operations.

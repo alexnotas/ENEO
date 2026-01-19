@@ -21,7 +21,7 @@
 
 ---
 
-## 📖 Overview
+## � Overview
 
 **ENEO** is a web-based application for simulating Near-Earth Object (NEO) impact events and analyzing their potential consequences on Earth. Developed as part of a thesis project at the **National Technical University of Athens (NTUA)**, this platform provides comprehensive physics-based modeling of asteroid impacts, including atmospheric entry, crater formation, blast effects, seismic impacts, thermal radiation, ejecta and population/economic impact assessments.
 
@@ -93,33 +93,48 @@ This simulator allows researchers, students, and space enthusiasts to:
 ```
 ENEO/
 ├── app.py                      # Main Flask application & API endpoints
-├── models.py                   # Core asteroid impact physics models
-├── results.py                  # Simulation orchestration and result formatting
-├── vulnerability_models.py     # Population vulnerability calculations
-├── population_calculator.py    # Population impact assessment
-├── gdp_calculator.py          # Economic damage calculations
-├── map_utils.py               # Geographic and mapping utilities
-├── visualization_utils.py      # Data visualization helpers
-├── translation_utils.py        # Multi-language support
-├── thresholds.py              # Damage threshold definitions
-├── utils.py                   # Physical constants and utilities
-├── app.wsgi                   # WSGI deployment configuration
-├── maps/                      # Geographic and demographic data
-│   ├── world.shp              # World boundaries shapefile
-│   ├── API_SP.POP.TOTL_*.csv  # World Bank population data
-│   ├── API_NY.GDP.PCAP.CD_*.csv # GDP per capita data
+├── app.wsgi                    # WSGI deployment configuration
+├── src/                        # Source code modules
+│   ├── models.py                   # Core asteroid impact physics models
+│   ├── results.py                  # Simulation orchestration and result formatting
+│   ├── vulnerability_models.py     # Population vulnerability calculations
+│   ├── population_calculator.py    # Population impact assessment
+│   ├── gdp_calculator.py           # Economic damage calculations
+│   ├── map_utils.py                # Geographic and mapping utilities
+│   ├── visualization_utils.py      # Data visualization helpers
+│   ├── translation_utils.py        # Multi-language support
+│   ├── thresholds.py               # Damage threshold definitions
+│   └── utils.py                    # Physical constants and utilities
+├── maps/                       # Geographic and demographic data
+│   ├── world.shp               # World boundaries shapefile
+│   ├── API_SP.POP.TOTL_*.csv   # World Bank population data
+│   ├── gdp_data.csv            # GDP per capita data (renamed from API_NY...)
+│   ├── country_codes.xlsx      # Country code mapping (renamed from excel.xlsx)
 │   └── country_fid_lookup.csv  # Country ID mapping
-├── static/                    # Frontend assets
-│   ├── css/                   # Stylesheets
-│   ├── js/                    # JavaScript modules
-│   └── translations/          # Language files (en.json, el.json)
-└── templates/                 # HTML templates
-    └── index.html             # Main application interface
+├── static/                     # Frontend assets
+│   ├── css/                    # Stylesheets
+│   ├── js/                     # JavaScript modules
+│   └── translations/           # Language files (en.json, el.json)
+└── templates/                  # HTML templates
+    └── index.html              # Main application interface
 ```
 
 ---
 
 ## 🚀 Installation
+
+> **⚠️ IMPORTANT: REQUIRED MAP DATA**
+>
+> The high-resolution map files required for this application are too large for GitHub. You must download them separately:
+>
+> 1. Download the map data from Zenodo: **[10.5281/zenodo.18302255](110.5281/zenodo.18302255)**
+> 2. Create a folder named `maps` in the root directory of the project:
+>    ```bash
+>    mkdir maps
+>    ```
+> 3. Extract/Place all downloaded files (shapefiles, CSVs, etc.) into the `maps/` folder.
+>
+> *Alternatively, you can download the full repository including all map data from: [https://zenodo.org/records/18141000](https://zenodo.org/records/18141000)*
 
 ### Prerequisites
 
@@ -174,7 +189,8 @@ pip install flask numpy pandas geopandas shapely rasterio pyproj requests
 Ensure the following data files are present in the `maps/` directory:
 - `world.shp` (and associated .dbf, .shx, .prj files)
 - World Bank population CSV
-- World Bank GDP CSV
+- `gdp_data.csv` (Renamed from original World Bank download)
+- `country_codes.xlsx`
 - `country_fid_lookup.csv`
 
 ---
@@ -409,4 +425,3 @@ If you use ENEO in your research, please cite:
 </div>
 
 </div>
-
