@@ -64,15 +64,6 @@ class TestPhysicsScenarios(unittest.TestCase):
         )
         print(f"Overpressure: {op_main:.2f} Pa")
         
-        # Check alternative energy source for range explanation if needed
-        op_alt = sim.calculate_overpressure_airburst(
-            distance_km * 1000, 
-            res['airburst_altitude'], 
-            ke_post, 
-            res['z_star']
-        )
-        if abs(op_main - op_alt) > 100:
-             print(f"(Alternative Overpressure calc: {op_alt:.2f} Pa)")
         
         wind = sim.calculate_peak_wind_velocity(op_main)
         print(f"Wind speed: {wind:.2f} m/s")
