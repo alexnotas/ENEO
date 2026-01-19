@@ -1,17 +1,9 @@
 """
 ENEO Asteroid Impact Simulation - Utility Functions and Constants Module
 
-This module provides essential utility functions and physical constants used throughout
-the asteroid impact simulation system. It includes:
+This module provides essential utility functions and physical constants used throughout the smimulation.
 
-1. Physical and atmospheric constants for impact calculations
-2. Unit conversion utilities (distance, energy)
-3. Geometric and mathematical helper functions
-4. Ocean depth retrieval from geospatial data
-5. Scaling factors for impact effects
-
-The constants and functions are based on established atmospheric models,
-impact physics research, and geophysical standards.
+The constants and functions are based on established atmospheric models, impact physics research, and geophysical standards.
 
 Author: Alexandros Notas
 Institution: National Technical University of Athens
@@ -97,15 +89,6 @@ def km_to_m(km):
     """
     Convert kilometers to meters.
     
-    Parameters
-    ----------
-    km : float
-        Distance in kilometers
-        
-    Returns
-    -------
-    float
-        Distance in meters
     """
     return km * 1000.0
 
@@ -113,15 +96,6 @@ def m_to_km(m):
     """
     Convert meters to kilometers.
     
-    Parameters
-    ----------
-    m : float
-        Distance in meters
-        
-    Returns
-    -------
-    float
-        Distance in kilometers
     """
     return m / 1000.0
 
@@ -132,15 +106,6 @@ def convert_energy_j_to_mt(energy_j):
     Uses the standard conversion factor where 1 MT TNT = 4.184 × 10^15 Joules.
     This is the internationally accepted TNT equivalent for nuclear yield measurements.
     
-    Parameters
-    ----------
-    energy_j : float
-        Energy in Joules
-        
-    Returns
-    -------
-    float
-        Energy in Megatons TNT equivalent
     """
     return energy_j / 4.184e15
 
@@ -156,15 +121,6 @@ def compute_scaling_factor(energy_kt):
     of the impact energy. This is based on dimensional analysis and similarity
     scaling laws in explosion physics.
     
-    Parameters
-    ----------
-    energy_kt : float
-        Impact energy in kilotons TNT equivalent
-        
-    Returns
-    -------
-    float
-        Scaling factor (energy_kt^(1/3)) or 1.0 if energy <= 0
     """
     return energy_kt ** (1/3) if energy_kt > 0 else 1.0
 
@@ -175,18 +131,7 @@ def common_p0(r1, z_b1):
     This function implements a two-term empirical fit for blast overpressure
     as a function of scaled distance. The formula combines near-field and
     far-field blast decay behavior.
-    
-    Parameters
-    ----------
-    r1 : float
-        Horizontal distance from blast center (meters)
-    z_b1 : float
-        Burst altitude above surface (meters)
-        
-    Returns
-    -------
-    float
-        Reference overpressure in Pascal
+
         
     Mathematical Form
     -----------------
@@ -206,30 +151,6 @@ def curvature_adjustment_factor(r_distance_m, R_f):
     fireball from view. This function calculates the fraction of the fireball visible
     from a given distance, accounting for the spherical geometry of Earth.
     
-    Parameters
-    ----------
-    r_distance_m : float
-        Horizontal distance from impact point (meters)
-    R_f : float
-        Fireball radius (meters)
-        
-    Returns
-    -------
-    float
-        Visibility fraction (0.0 = completely blocked, 1.0 = fully visible)
-        
-    Algorithm
-    ---------
-    1. Calculate angular distance on Earth's surface
-    2. Determine horizon height at the observation point
-    3. Check if fireball extends above the horizon
-    4. Calculate visible fraction using geometric integration
-    
-    Mathematical Basis
-    ------------------
-    Uses spherical geometry to determine the intersection of the fireball
-    sphere with the line of sight from the observer, accounting for Earth's
-    curvature blocking the lower portion of the fireball.
     """
     # Return zero if fireball radius is invalid
     if R_f <= 0:
@@ -265,36 +186,6 @@ def get_ocean_depth_from_geotiff(lat, lon, file_path=ETOPO_FILE_PATH):
     for tsunami calculations. The ETOPO dataset uses the convention where negative values
     represent depths below sea level and positive values represent elevations above sea level.
     
-    Parameters
-    ----------
-    lat : float
-        Latitude in decimal degrees (-90 to 90)
-    lon : float
-        Longitude in decimal degrees (-180 to 180)
-    file_path : str, optional
-        Path to the ETOPO GeoTIFF file (default: ETOPO_FILE_PATH)
-        
-    Returns
-    -------
-    float or None
-        Ocean depth in meters (positive value) if location is underwater
-        0.0 if location is on land or no data available
-        None if coordinates are out of bounds or critical error occurs
-        
-    Data Convention
-    ---------------
-    ETOPO data format:
-    - Negative values: Below sea level (ocean depth)
-    - Positive values: Above sea level (land elevation)
-    - NoData values: Areas with no elevation data
-    
-    Error Handling
-    --------------
-    The function implements comprehensive error handling for:
-    - Out-of-bounds coordinates
-    - Missing or corrupted data files
-    - NoData values in the dataset
-    - Coordinate transformation errors
     """
     try:
         # Open the GeoTIFF file using rasterio for geospatial data access
