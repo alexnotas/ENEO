@@ -1,19 +1,8 @@
 """
 ENEO Asteroid Impact Simulation - Results Processing Module
 
-This module orchestrates the complete asteroid impact simulation pipeline and formats
-results for presentation. It coordinates atmospheric entry calculations, impact effects
-modeling, and vulnerability assessments to produce comprehensive impact reports.
-
-Key Functions:
-- collect_simulation_results(): Structures simulation data into organized result sets
-- run_simulation_full(): Executes complete impact simulation with all effects
-- find_vulnerability_distance(): Determines damage zone boundaries using binary search
-- find_specific_vulnerability_distance(): Calculates specific hazard distances (e.g., thermal, seismic)
-
-The module integrates multiple physics models to calculate crater formation, thermal
-radiation, seismic effects, airblast damage, ejecta distribution, wind effects,
-tsunami generation, and population vulnerability across distance zones.
+This module orchestrates the simulation pipeline and formats results for visualization. It coordinates atmospheric entry calculations, impact effects
+modeling, and vulnerability calculations to produce the needed data for the simulation.
 
 Author: Alexandros Notas
 Institution: National Technical University of Athens
@@ -45,23 +34,7 @@ def collect_simulation_results(sim: AsteroidImpactSimulation, entry_results,
                                r_distance, tsunami_data=None): # Added tsunami_data
     """
     Organize simulation results into structured data format for API responses and analysis.
-    
-    This function takes raw simulation outputs and packages them into a comprehensive
-    result dictionary containing input parameters, atmospheric entry details, energy
-    calculations, crater formation data, tsunami effects, and vulnerability zones.
-    
-    Args:
-        sim: AsteroidImpactSimulation object with impact parameters
-        entry_results: Atmospheric entry simulation results dictionary
-        initial_energy_joules: Original kinetic energy before atmospheric entry
-        initial_energy_megatons: Initial energy in MT TNT equivalent
-        specific_energy_joules: Energy used for damage calculations (impact/airburst/initial)
-        specific_energy_type: Type of energy used ("Impact", "Airburst", or "Initial")
-        r_distance: Distance from impact point for effect calculations (km)
-        tsunami_data: Optional tsunami calculation results
-        
-    Returns:
-        dict: Structured results containing all simulation outputs organized by category
+
     """
     # Package basic simulation parameters and atmospheric entry results
     results = {
@@ -168,31 +141,6 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
     """
     Execute complete asteroid impact simulation with all physics models and effects.
     
-    This is the main simulation orchestrator that runs the full impact analysis pipeline:
-    1. Atmospheric entry and breakup modeling
-    2. Impact energy calculations (initial, impact, or airburst)
-    3. Crater formation and melt production
-    4. Thermal radiation and fireball effects
-    5. Seismic wave generation
-    6. Ejecta blanket distribution
-    7. Airblast and overpressure calculations
-    8. Wind damage assessment (EF scale)
-    9. Tsunami generation (for ocean impacts)
-    10. Population vulnerability modeling
-    
-    Args:
-        diameter: Asteroid diameter in meters
-        density: Asteroid density in kg/m³
-        velocity_km_s: Initial velocity in km/s
-        entry_angle: Entry angle in degrees from horizontal
-        r_distance: Distance from impact for effect calculations in km
-        lat: Impact latitude (required for tsunami calculations)
-        lon: Impact longitude (required for tsunami calculations)
-        
-    Returns:
-        tuple: (formatted_text_results, structured_data_results)
-            - formatted_text_results: Human-readable simulation report
-            - structured_data_results: Machine-readable data for APIs/visualization
     """
     # Initialize simulation object and calculate basic energetics
     sim = AsteroidImpactSimulation(diameter, velocity_km_s, density, entry_angle)
@@ -419,7 +367,7 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
                 best = low
                 for _ in range(100):
                     mid = (low + high) / 2.0
-                    # Critical fix: Convert km to m before passing to flux calculation
+                    # Critical: Convert km to m before passing to flux calculation
                     current_phi = sim.calculate_airburst_thermal_flux(airburst_energy_joules_for_thermal, z_b, km_to_m(mid))
                     if current_phi >= threshold:
                         best = mid
@@ -589,10 +537,7 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
             energy_for_calc = max(KE_post, KE_internal)
         else: # ground impact
             # Ensure imp_energy is defined; it should be from earlier in run_simulation_full
-            v_surface_for_blast = entry_results['post_breakup_velocity'] # Or however v_surface is determined for blast energy
-            # Recalculate or retrieve imp_energy if it's not in the immediate scope
-            # For simplicity, assuming imp_energy (from earlier ground impact calculations) is accessible
-            # If not, it needs to be recalculated or passed.
+            v_surface_for_blast = entry_results['post_breakup_velocity'] 
             energy_for_calc = imp_energy # Assuming imp_energy is in scope
 
         while high - low > tol:
@@ -960,23 +905,8 @@ def run_simulation_full(diameter, density, velocity_km_s, entry_angle, r_distanc
 
 def find_vulnerability_distance(sim, threshold, entry_results, r_min=0.01, r_max=20000.0, tol=0.01):
     """
-    Find maximum distance where combined vulnerability meets or exceeds threshold.
+    Find maximum distance where combined vulnerability meets or exceeds thresholds using binary search.
     
-    Uses binary search to efficiently determine the outer boundary of damage zones.
-    Calculates combined vulnerability from multiple effects (overpressure, wind,
-    thermal, seismic, ejecta) at each test distance until threshold is reached.
-    
-    Args:
-        sim: AsteroidImpactSimulation object
-        threshold: Target vulnerability level (0.0 to 1.0)
-        entry_results: Atmospheric entry simulation results
-        r_min: Minimum search distance in km (default 0.01)
-        r_max: Maximum search distance in km (default 20000)
-        tol: Search tolerance in km (default 0.01)
-        
-    Returns:
-        float: Maximum distance in km where vulnerability >= threshold,
-               or 0.0 if threshold not met
     """
     def calculate_vulnerability_at_distance(r_km):
         """Calculate combined vulnerability from all effects at specified distance."""
@@ -1077,42 +1007,8 @@ def find_vulnerability_distance(sim, threshold, entry_results, r_min=0.01, r_max
 
 def find_specific_vulnerability_distance(sim, entry_results, vuln_type, threshold, r_min=0.01, r_max=20000.0, tol=0.01):
     """
-    Calculates the maximum distance at which a specific vulnerability type 
-    (e.g., thermal, seismic) meets or exceeds a defined threshold.
+    Calculates the maximum distance at which a specific vulnerability type meets or exceeds a defined threshold using binary search.
     
-    This function uses a binary search algorithm to efficiently find this boundary 
-    distance. Beyond this distance, the vulnerability's intensity drops below the 
-    given threshold. It accounts for different impact scenarios (ground impacts vs. airbursts) 
-    and calculates relevant vulnerability metrics for each distance evaluated.
-    
-    The binary search converges quickly, making it suitable for dynamic calculations.
-    
-    Args:
-        sim (AsteroidImpactSimulation): An initialized simulation object.
-        entry_results (dict): Results from the atmospheric entry simulation, including
-            event_type, post_breakup_velocity, airburst_altitude, v_breakup, and z_star.
-        vuln_type (str): The type of vulnerability to assess (e.g., 'thermal', 'overpressure').
-        threshold (float): The vulnerability threshold value (0.0 to 1.0).
-        r_min (float, optional): Minimum search distance in km (default: 0.01 km).
-        r_max (float, optional): Maximum search distance in km (default: 20000.0 km).
-        tol (float, optional): Tolerance for search convergence in km (default: 0.01 km).
-    
-    Returns:
-        float: The maximum distance (km) where vulnerability is ≥ threshold. 
-               Returns r_min if the threshold isn't met even at close distances.
-    
-    Mathematical Approach:
-        The binary search maintains these conditions:
-        - The left boundary (left) of the search interval represents a distance where 
-          vulnerability(distance) ≥ threshold.
-        - The right boundary (right) represents a distance where vulnerability(distance) < threshold.
-        
-        The search stops when the interval (right - left) is smaller than the tolerance.
-    
-    Details on vulnerability calculation:
-        - For Ground Impacts: Uses models based on impact energy and crater formation.
-        - For Airbursts: Employs models based on burst energy and atmospheric blast wave propagation.
-        - Returns 0.0 if a vulnerability type isn't applicable (e.g., ejecta from an airburst).
     """
     from src.utils import km_to_m, rho_target
     
