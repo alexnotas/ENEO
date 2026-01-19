@@ -1,23 +1,11 @@
 """
 GDP Calculator Module for ENEO Asteroid Impact Simulation System
 
-This module handles economic damage calculations for asteroid impact simulations by:
-- Loading and processing global GDP per capita data from World Bank datasets
-- Providing country name normalization and matching capabilities
-- Calculating economic impact based on casualty estimates and productivity loss
+This module handles economic damage calculations for asteroid impact simulations.
 
 The economic damage model estimates financial losses as:
 casualties × GDP_per_capita × productivity_years_factor
 
-Key Features:
-- Robust country name matching across different naming conventions
-- Multiple fallback strategies for country identification (codes, names, fuzzy matching)
-- Efficient caching of processed data for repeated lookups
-- Comprehensive logging for data quality monitoring
-
-Data Sources:
-- World Bank GDP per capita data (NY.GDP.PCAP.CD indicator)
-- Country code mapping files for geographic standardization
 """
 
 import pandas as pd
@@ -92,16 +80,6 @@ def normalize_country_name(name):
     """
     Standardizes a country name to improve matching across different datasets.
 
-    This function converts the name to lowercase, removes leading/trailing whitespace,
-    eliminates common prefixes/suffixes (e.g., "Republic of", "The"), and replaces
-    certain patterns (e.g., " and " with " & ") to create a more uniform representation.
-    It also consults the `COUNTRY_NAME_MAPPINGS` dictionary for specific overrides.
-
-    Args:
-        name (str): The raw country name.
-
-    Returns:
-        str: The normalized country name. Returns an empty string if the input is invalid.
     """
     if pd.isna(name) or not name:
         return ""
@@ -154,10 +132,6 @@ def load_gdp_data():
     The processed data is stored in global variables (`merged_df`, `name_variations`,
     `code_to_row`) for efficient subsequent lookups.
 
-    Returns:
-        pandas.DataFrame: The merged dataframe containing country information and GDP data,
-                          or the raw GDP dataframe if merging fails or mapping file is absent.
-                          Returns None if a critical error occurs during loading.
     """
     global merged_df, name_variations, code_to_row
     
@@ -343,14 +317,6 @@ def lookup_gdp(country_code=None, country_name=None, fid=None):
     The lookup prioritizes FID, then country codes, then normalized country names.
     It utilizes pre-loaded and processed data for efficiency.
 
-    Args:
-        country_code (str, optional): The ISO_A3, WB_A2, or WB_A3 country code.
-        country_name (str, optional): The name of the country.
-        fid (int or str, optional): The Feature ID (FID) of the country.
-
-    Returns:
-        tuple: A tuple containing (gdp_per_capita, gdp_year).
-               Returns (None, None) if the country or its GDP data cannot be found.
     """
     # Ensure data is loaded before attempting lookup.
     if merged_df is None:
@@ -445,21 +411,6 @@ def calculate_economic_damage(countries_data, productivity_years=1):
     `Number of Casualties * GDP per Capita * Productivity Years Factor`.
     The `productivity_years` factor can be used to model longer-term economic impact.
 
-    Args:
-        countries_data (list): A list of dictionaries, where each dictionary represents
-                               an affected country and includes at least 'name', 'fid',
-                               and 'total_casualties'.
-        productivity_years (int or float, optional): A multiplier representing the number
-                                                     of years of lost productivity per casualty.
-                                                     Defaults to 1.
-
-    Returns:
-        dict: A dictionary containing:
-            - "countries" (list): Detailed economic damage assessment for each country.
-            - "total_economic_damage" (float): Sum of economic damage across all countries.
-            - "countries_with_data" (int): Number of countries for which GDP data was found.
-            - "countries_without_data" (int): Number of countries lacking GDP data.
-            - "note" (str): A brief note about the calculation method.
     """
     # Ensure GDP data is loaded.
     load_gdp_data()
