@@ -145,7 +145,7 @@ ENEO/
 ### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/ENEO-main.git
+git clone https://github.com/alexnotas/ENEO.git
 cd ENEO-main
 ```
 
