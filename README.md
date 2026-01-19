@@ -1,0 +1,461 @@
+<div style="background:#050611; color:#EAF0FF; border:1px solid rgba(255,255,255,0.12); border-radius:18px; padding:28px 22px; margin-bottom:22px; max-width:980px">
+
+<div align="center">
+
+<h1 style="margin:0 0 10px; font-size:44px; letter-spacing:0.08em; color:#FF7A18; text-shadow:0 0 18px rgba(255,122,24,0.25)">ENEO</h1>
+
+<div style="margin:0 0 14px; font-size:16px; letter-spacing:0.22em; opacity:0.9">NEAR-EARTH OBJECT IMPACT SIMULATOR</div>
+
+<div style="height:1px; width:72%; background:linear-gradient(90deg, rgba(255,122,24,0), rgba(255,122,24,0.55), rgba(255,122,24,0)); margin:14px auto 18px"></div>
+
+![ENEO Logo](https://img.shields.io/badge/ENEO-Asteroid%20Impact%20Simulator-blue?style=for-the-badge)
+![Python](https://img.shields.io/badge/Python-3.8+-green?style=for-the-badge&logo=python)
+![Flask](https://img.shields.io/badge/Flask-2.0+-lightgrey?style=for-the-badge&logo=flask)
+![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)
+
+<p style="margin:18px 0 10px; max-width:860px; line-height:1.7; font-size:15.5px; opacity:0.95">
+  <strong>An advanced Near-Earth Object impact simulation platform developed in the School of Mining and Metallurgical Engineering of the National Technical University of Athens</strong>
+</p>
+
+[Features](#features) • [Installation](#installation) • [Usage](#usage) • [Documentation](#documentation) • [Contributing](#contributing)
+
+</div>
+
+---
+
+## 📖 Overview
+
+**ENEO** is a web-based application for simulating Near-Earth Object (NEO) impact events and analyzing their potential consequences on Earth. Developed as part of a thesis project at the **National Technical University of Athens (NTUA)**, this platform provides comprehensive physics-based modeling of asteroid impacts, including atmospheric entry, crater formation, blast effects, seismic impacts, thermal radiation, ejecta and population/economic impact assessments.
+
+### 🎯 Purpose
+
+This simulator allows researchers, students, and space enthusiasts to:
+- Model realistic Near-Earth Object (like asteroids) impact scenarios with scientific accuracy
+- Visualize damage zones on an interactive global map
+- Assess potential population casualties and preliminary economic damage
+- Study various impact phenomena
+- Integrate real NEO data from NASA's Sentry API
+
+---
+
+## ✨ Features
+
+### Core Capabilities
+
+- **🌍 Interactive Impact Simulation**
+  - Physics-based calculations
+  - Customizable asteroid parameters (diameter, density, velocity, entry angle)
+  - Geographic coordinate input for any location on Earth
+
+- **📊 Comprehensive Impact Analysis**
+  - Atmospheric fragmentation and pancake effects
+  - Crater formation modeling (transient and final crater dimensions)
+  - Airblast overpressure calculations
+  - Thermal radiation effects and burn zones
+  - Seismic wave propagation and earthquake magnitude
+  - Ejecta blanket distribution
+  - Preliminary tsunami generation for ocean impacts
+
+- **👥 Population & Economic Impact**
+  - Global population density analysis using gridded population data
+  - Vulnerability models for different hazard types
+  - Country-by-country casualty estimates
+  - Economic damage calculations based on GDP per capita
+
+- **🗺️ Advanced Visualization**
+  - Interactive Leaflet-based mapping
+  - Color-coded damage zone overlays
+  - Antimeridian crossing support for accurate global projections
+
+- **🌐 Multi-language Support**
+  - English and Greek translations
+  - Dynamic language switching
+  - Localized result presentations
+
+- **🛰️ NASA API Integration**
+  - Get real asteroid data from NASA Sentry system
+  - Pre-populate simulations with known NEO characteristics
+  - Stay updated with current asteroid threat assessments
+
+---
+
+## 🏗️ Architecture
+
+### Technology Stack
+
+- **Backend**: Python 3.8+ with Flask web framework
+- **Frontend**: HTML5, CSS3, JavaScript (ES6+)
+- **Mapping**: Leaflet.js for interactive geographic visualization
+- **Data Processing**: NumPy, Pandas, GeoPandas
+- **Geospatial**: Shapely, GeoPandas, Rasterio, PyProj
+- **Styling**: Bootstrap 5, Material Design Icons
+
+### Project Structure
+
+```
+ENEO/
+├── app.py                      # Main Flask application & API endpoints
+├── models.py                   # Core asteroid impact physics models
+├── results.py                  # Simulation orchestration and result formatting
+├── vulnerability_models.py     # Population vulnerability calculations
+├── population_calculator.py    # Population impact assessment
+├── gdp_calculator.py          # Economic damage calculations
+├── map_utils.py               # Geographic and mapping utilities
+├── visualization_utils.py      # Data visualization helpers
+├── translation_utils.py        # Multi-language support
+├── thresholds.py              # Damage threshold definitions
+├── utils.py                   # Physical constants and utilities
+├── app.wsgi                   # WSGI deployment configuration
+├── maps/                      # Geographic and demographic data
+│   ├── world.shp              # World boundaries shapefile
+│   ├── API_SP.POP.TOTL_*.csv  # World Bank population data
+│   ├── API_NY.GDP.PCAP.CD_*.csv # GDP per capita data
+│   └── country_fid_lookup.csv  # Country ID mapping
+├── static/                    # Frontend assets
+│   ├── css/                   # Stylesheets
+│   ├── js/                    # JavaScript modules
+│   └── translations/          # Language files (en.json, el.json)
+└── templates/                 # HTML templates
+    └── index.html             # Main application interface
+```
+
+---
+
+## 🚀 Installation
+
+### Prerequisites
+
+- Python 3.8 or higher
+- pip (Python package manager)
+- Git (for cloning the repository)
+
+### Step 1: Clone the Repository
+
+```bash
+git clone https://github.com/yourusername/ENEO-main.git
+cd ENEO-main
+```
+
+### Step 2: Create a Virtual Environment (Recommended)
+
+```bash
+# On Linux/macOS
+python3 -m venv venv
+source venv/bin/activate
+
+# On Windows
+python -m venv venv
+venv\Scripts\activate
+```
+
+### Step 3: Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+**Or install manually (same as `requirements.txt`):**
+```bash
+pip install flask numpy pandas geopandas shapely rasterio pyproj requests
+```
+
+**Required Python Packages:**
+- `Flask` - Web framework
+- `requests` - HTTP requests (NASA API integration)
+- `numpy` - Numerical computations
+- `pandas` - Data manipulation
+- `shapely` - Geometry operations
+- `geopandas` - Geospatial vector data operations (reading `world.shp`, etc.)
+- `rasterio` - Raster data reading (population grids, ocean depth GeoTIFF)
+- `pyproj` - Coordinate reference system transformations
+
+> Note: you don't import `fiona` directly in this repo. On many systems it is installed automatically as a dependency of `geopandas` (shapefile I/O).
+
+### Step 4: Verify Data Files
+
+Ensure the following data files are present in the `maps/` directory:
+- `world.shp` (and associated .dbf, .shx, .prj files)
+- World Bank population CSV
+- World Bank GDP CSV
+- `country_fid_lookup.csv`
+
+---
+
+## 💻 Usage
+
+### Running the Application Locally
+
+1. **Start the Flask development server:**
+
+```bash
+python app.py
+```
+
+2. **Open your web browser and navigate to:**
+
+```
+http://localhost:5000
+```
+
+3. **The application should now be running!**
+
+### Using the Simulator
+
+#### Basic Simulation
+
+1. **Enter Asteroid Parameters:**
+   - **Diameter**: Size of the asteroid (meters) - e.g., 100m
+   - **Density**: Material density (kg/m³) - e.g., 3000 for rocky asteroids
+   - **Velocity**: Entry speed (km/s) - range: 11-72 km/s
+   - **Entry Angle**: Angle from horizontal (degrees) - range: 15-90°
+   - **Distance**: Reference distance for analysis (km)
+
+2. **Set Impact Location:**
+   - Enter latitude and longitude coordinates
+   - Or click on the interactive map to select a location
+
+3. **Run Simulation:**
+   - Click the "Run Simulation" button
+   - Wait for calculations to complete (typically 5-30 seconds)
+
+4. **View Results:**
+   - **Summary Tab**: Overview of impact effects
+   - **Detailed Results**: Comprehensive breakdown of all hazards
+   - **Population Impact**: Casualties by country and damage zone
+   - **Economic Impact**: Estimated financial losses
+   - **Map Visualization**: Geographic representation of damage zones
+
+#### Advanced Features
+
+**Load NASA NEO Data:**
+- Click the "NASA Sentry API" button
+- Browse known Near-Earth Objects
+- Select an asteroid to auto-populate parameters
+
+**Switch Languages:**
+- Use the language switcher to toggle between English and Greek
+
+**Compare Scenarios:**
+- Save multiple simulation results
+- Compare different impact parameters side-by-side
+
+---
+
+## 📚 Documentation
+
+### Physics Models
+
+ENEO implements peer-reviewed scientific models for asteroid impact simulation:
+
+#### 1. **Atmospheric Entry**
+- Drag equation modeling with altitude-dependent density
+- Pancaking and fragmentation effects
+- Airburst detection and altitude calculations
+
+#### 2. **Crater Formation**
+- Transient crater dimensions using scaling laws
+- Rim collapse and final crater calculations
+- Different crater types (simple vs. complex)
+
+#### 3. **Thermal Radiation**
+- Fireball luminosity and temperature
+- Thermal pulse duration and intensity
+- Burn severity zones (1st, 2nd, 3rd degree burns)
+
+#### 4. **Seismic Effects**
+- Richter scale magnitude calculation
+- Ground motion amplitude
+- Structural damage thresholds
+
+#### 5. **Airblast**
+- Overpressure decay with distance
+- Dynamic pressure calculations
+- Wind speed estimates
+
+#### 6. **Ejecta**
+- Ballistic fragment distribution
+- Ejecta thickness profiles
+- Fragment size and velocity
+
+#### 7. **Tsunami** (Ocean Impacts)
+- Wave amplitude generation
+- Deep water wave propagation
+- Coastal inundation potential
+
+### Vulnerability Models
+
+Population vulnerability calculations based on research by **C. Rumpf et al. (2017)**:
+- Crater proximity fatality rates
+- Thermal radiation burn thresholds
+- Overpressure injury/fatality curves
+- Seismic structural collapse probabilities
+- Ejecta fragment impact risk
+
+**Reference:** Rumpf, C. M., Lewis, H. G., & Atkinson, P. M. (2017). "Population Vulnerability Models for Asteroid Impact Risk Assessment." *Meteoritics & Planetary Science*, 52(6), 1082–1102.
+
+---
+
+## 🌐 API Endpoints
+
+### POST `/simulate`
+
+**Description:** Run an asteroid impact simulation
+
+**Request Body:**
+```json
+{
+  "diameter": 100,
+  "density": 3000,
+  "velocity": 20,
+  "entry_angle": 45,
+  "distance": 1000,
+  "latitude": 40.7128,
+  "longitude": -74.0060,
+  "language": "en"
+}
+```
+
+**Response:**
+```json
+{
+  "results_text": "Simulation summary...",
+  "results_data": {
+    "vulnerability_analysis": {...},
+    "population_analysis": {...},
+    "economic_analysis": {...},
+    "visualization": {...},
+    "country_visualization": {...}
+  }
+}
+```
+
+### GET `/nasa-sentry`
+
+**Description:** Fetch Near-Earth Object data from NASA's Sentry API
+
+**Response:** List of potentially hazardous asteroids with orbital parameters
+
+### GET `/ocean-depth`
+
+**Description:** Query ocean depth at specific coordinates
+
+**Parameters:** `lat`, `lon`
+
+**Response:** Ocean depth in meters (or indication if on land)
+
+---
+
+## 🛠️ Configuration
+
+### Development Mode
+
+Edit `app.py` to enable debug mode:
+
+```python
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5000)
+```
+
+### Production Deployment
+
+For production deployment with Apache/Nginx:
+
+1. Configure `app.wsgi` with your application path
+2. Set up WSGI server (e.g., mod_wsgi, Gunicorn, uWSGI)
+3. Configure reverse proxy in web server
+4. Disable debug mode in production
+
+**Example Gunicorn command:**
+```bash
+gunicorn -w 4 -b 0.0.0.0:8000 app:app
+```
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. **Fork the repository**
+2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
+3. **Commit your changes**: `git commit -m 'Add amazing feature'`
+4. **Push to the branch**: `git push origin feature/amazing-feature`
+5. **Open a Pull Request**
+
+### Development Guidelines
+
+- Follow PEP 8 style guide for Python code
+- Add docstrings to all functions and classes
+- Include unit tests for new features
+- Update documentation as needed
+- Maintain backward compatibility when possible
+
+---
+
+## 📄 License
+
+This project is part of academic research at the **National Technical University of Athens (NTUA)**. 
+
+For licensing information, please contact the author or the university.
+
+---
+
+## 👨‍🎓 Author
+
+**Alexandros Notas**  
+School of Mining and Metallurgical Engineering  
+National Technical University of Athens (NTUA)
+
+**Thesis:** *Methods of Prediction and Assessment of Asteroid Impact Consequences*  
+**Date:** July 2025
+
+---
+
+## 🙏 Acknowledgments
+
+- **National Technical University of Athens (NTUA)** - School of Mining and Metallurgical Engineering
+- **NASA** - For the Sentry API and NEO data
+- **World Bank** - For population and GDP datasets
+- **Research Community** - For published impact physics models and vulnerability studies
+- **Open Source Contributors** - For the excellent libraries that make this project possible
+
+---
+
+## 📞 Contact & Support
+
+- **E-Mail**: alexnotas@metal.ntua.gr
+- **Issues**: Please use the GitHub Issues tab for bug reports and feature requests
+- **Questions**: For academic inquiries, contact through NTUA channels
+
+---
+
+## 🔬 Citation
+
+If you use ENEO in your research, please cite:
+
+```bibtex
+@mastersthesis{notas2025eneo,
+  authors = {Notas, Alexandros, Prof. Dimmitrios Kaliampakos},
+  title = {ENEO: A Public, Interactive Decision-Support Platform for Bridging the Near-Earth Object Risk Perception Gap},
+  school = {National Technical University of Athens},
+  year = {2025},
+  month = {July}
+}
+```
+
+---
+
+## 📊 Project Status
+
+**Current Version:** 1.0  
+**Status:** Active Development  
+**Last Updated:** January 2026
+
+---
+
+<div align="center">
+
+</div>
+
+</div>
+
