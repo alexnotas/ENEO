@@ -17,8 +17,6 @@
   <strong>An advanced Near-Earth Object impact simulation platform developed in the School of Mining and Metallurgical Engineering of the National Technical University of Athens</strong>
 </p>
 
-[Features](#features) • [Installation](#installation) • [Usage](#usage) • [Documentation](#documentation) • [Contributing](#contributing)
-
 </div>
 
 ---
@@ -342,53 +340,6 @@ Population vulnerability calculations based on research by **C. Rumpf et al. (20
 **Parameters:** `lat`, `lon`
 
 **Response:** Ocean depth in meters (or indication if on land)
-
----
-
-## 🛠️ Configuration
-
-### Development Mode
-
-Edit `app.py` to enable debug mode:
-
-```python
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
-```
-
-### Production Deployment
-
-For production deployment with Apache/Nginx:
-
-1. Configure `app.wsgi` with your application path
-2. Set up WSGI server (e.g., mod_wsgi, Gunicorn, uWSGI)
-3. Configure reverse proxy in web server
-4. Disable debug mode in production
-
-**Example Gunicorn command:**
-```bash
-gunicorn -w 4 -b 0.0.0.0:8000 app:app
-```
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please follow these guidelines:
-
-1. **Fork the repository**
-2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
-3. **Commit your changes**: `git commit -m 'Add amazing feature'`
-4. **Push to the branch**: `git push origin feature/amazing-feature`
-5. **Open a Pull Request**
-
-### Development Guidelines
-
-- Follow PEP 8 style guide for Python code
-- Add docstrings to all functions and classes
-- Include unit tests for new features
-- Update documentation as needed
-- Maintain backward compatibility when possible
 
 ---
 
