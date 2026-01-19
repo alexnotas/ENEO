@@ -1,8 +1,7 @@
 """
 Translation utility for loading localized strings in Python modules.
 
-This module provides functionality to load translation data from JSON files
-and make it available to Python code that needs localized text strings.
+This module is a helper for loading translation JSON files.
 
 Author: Alexandros Notas
 Institution: National Technical University of Athens
@@ -19,12 +18,7 @@ available_languages = ['en', 'el']
 def load_translations(language='en'):
     """
     Load translation data from JSON file.
-    
-    Args:
-        language (str): Language code (default: 'en')
-        
-    Returns:
-        dict: Translation data or empty dict if loading fails
+   
     """
     global translations, current_language
     
@@ -51,8 +45,6 @@ def load_all_translations():
     """
     Load all available translation files.
     
-    Returns:
-        dict: Dictionary with all loaded translations
     """
     global translations
     
@@ -65,11 +57,6 @@ def set_language(language):
     """
     Set the current language for translations.
     
-    Args:
-        language (str): Language code to set as current
-        
-    Returns:
-        bool: True if language was set successfully, False otherwise
     """
     global current_language
     
@@ -87,13 +74,6 @@ def get_translation(key_path, fallback='', language=None):
     """
     Get a translation string using dot notation for nested keys.
     
-    Args:
-        key_path (str): Dot-separated path to translation key (e.g., 'thresholds.blast.glassWindows')
-        fallback (str): Fallback text if translation not found
-        language (str): Override language for this specific translation
-        
-    Returns:
-        str: Translated text or fallback
     """
     target_language = language or current_language
     
@@ -138,8 +118,6 @@ def get_available_languages():
     """
     Get list of available language codes.
     
-    Returns:
-        list: List of available language codes
     """
     return available_languages.copy()
 
@@ -147,8 +125,6 @@ def get_current_language():
     """
     Get the current language code.
     
-    Returns:
-        str: Current language code
     """
     return current_language
 
