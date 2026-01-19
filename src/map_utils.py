@@ -1,9 +1,7 @@
 """
 ENEO Asteroid Impact Simulation - Map Utility Functions
 
-This module provides geometric and geographic utility functions for the ENEO application.
-It handles the generation of coordinates for damage zones, accounting for Earth's
-spherical geometry, antimeridian crossings, and polar regions.
+This module handles the generation of coordinates for damage zones, accounting for Earth's spherical geometry, antimeridian crossings, and polar regions.
 
 Author: Alexandros Notas
 Institution: National Technical University of Athens
@@ -16,37 +14,6 @@ def create_circle_coordinates(center_lat, center_lon, radius_km, points=72):
     """
     Generates geographic coordinates for circular damage zones, carefully considering Earth's spherical geometry.
     
-    This function produces accurate circular boundaries on Earth's surface by addressing key complexities:
-    - Earth's curvature, managed using great circle calculations.
-    - Antimeridian crossing (longitude ±180°), for circles spanning the international date line.
-    - Special handling for polar regions to ensure accuracy at high latitudes.
-    - Normalization and validation of coordinate systems.
-    
-    The function uses spherical trigonometry to compute points at a consistent distance from the impact center,
-    aiming for a precise representation of damage zones globally.
-    
-    Args:
-        center_lat (float): Latitude of the circle's center, in decimal degrees (-90 to 90).
-        center_lon (float): Longitude of the circle's center, in decimal degrees (-180 to 180).
-        radius_km (float): Radius of the circle in kilometers.
-        points (int, optional): Number of points to generate for the circle's perimeter 
-                                (default is 72, providing a point every 5 degrees).
-    
-    Returns:
-        list: A list of coordinates defining the circle. The format depends on the circle's characteristics:
-            - For standard circles: A single list of [longitude, latitude] pairs.
-            - For circles crossing the antimeridian: A list of two lists, representing multi-polygons.
-            - An empty list ([]) if the circle cannot be generated due to invalid parameters.
-    
-    Mathematical Basis:
-        Calculations are based on the spherical law of cosines, fundamental for great circle navigation:
-        lat2 = asin(sin(lat1) * cos(d/R) + cos(lat1) * sin(d/R) * cos(bearing))
-        lon2 = lon1 + atan2(sin(bearing) * sin(d/R) * cos(lat1), cos(d/R) - sin(lat1) * sin(lat2))
-        
-        Where:
-        - d/R is the angular distance (radius_km / Earth_radius).
-        - R is Earth's mean radius (6371 km).
-        - bearing is the azimuth angle for each point on the circle.
     """
     # Validate and clamp latitude to valid geographic range
     center_lat = max(-90, min(90, center_lat))
@@ -166,30 +133,7 @@ def create_polar_circle_coordinates(center_lat, center_lon, radius_km, points=72
     
     This function is designed to handle the specific geometric challenges of creating circular zones at high latitudes,
     where standard calculations can be less accurate. It uses pole-aware algorithms for a precise depiction of damage zones.
-    
-    Key features include:
-    - Detection and management of pole-crossing scenarios.
-    - Coordinate reflection for zones that extend across a pole.
-    - Compensation for longitude shifts in regions that have crossed a pole.
-    - Validation for extreme polar cases (latitudes > 89.9° or < -89.9°).
-    
-    Args:
-        center_lat (float): Latitude of the circle's center (typically > 85° or < -85°).
-        center_lon (float): Longitude of the circle's center.
-        radius_km (float): Radius of the circle in kilometers.
-        points (int, optional): Number of points for the circle's perimeter (default is 72).
-    
-    Returns:
-        list: Coordinates for the polar circle. The format is:
-            - For non-pole-crossing circles: A single list of [longitude, latitude] pairs.
-            - For pole-crossing circles: A list of two lists (multi-polygon format).
-            - An empty list ([]) for invalid configurations (e.g., radius too large).
-    
-    Mathematical Approach:
-        If a circle crosses a pole, points extending beyond the pole are geometrically reflected:
-        - Latitude reflection: lat_reflected = pole_lat - (lat_calculated - pole_lat)
-        - Longitude shift: lon_reflected = lon_calculated + 180°
-        This method ensures a continuous and accurate representation of the zone across polar regions.
+
     """
     
     # Earth's mean radius and validation
