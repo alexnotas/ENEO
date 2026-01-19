@@ -44,7 +44,7 @@ from collections import defaultdict # Added for defaultdict
 
 # File paths for population and country data (Use your local path here)
 # dynamic path resolution
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MAPS_DIR = os.path.join(BASE_DIR, 'maps')
 
 TIFF_PATH = os.path.join(MAPS_DIR, "population_with_country_fid_assigned.tif")

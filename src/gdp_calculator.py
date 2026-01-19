@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 # Define file paths for GDP data and country code mappings.
 # dynamic path resolution
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MAPS_DIR = os.path.join(BASE_DIR, 'maps') # Assumes 'maps' folder is next to this script
 
 GDP_FILE = os.path.join(MAPS_DIR, "API_NY.GDP.PCAP.CD_DS2_en_csv_v2_85121.csv")

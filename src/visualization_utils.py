@@ -11,10 +11,10 @@ Date: July 2025
 """
 
 import numpy as np
-from map_utils import create_circle_coordinates
-from utils import m_to_km
-from models import AsteroidImpactSimulation
-from results import find_specific_vulnerability_distance
+from src.map_utils import create_circle_coordinates
+from src.utils import m_to_km
+from src.models import AsteroidImpactSimulation
+from src.results import find_specific_vulnerability_distance
 
 def parse_danger_zones(section_text, lat, lon, section_title=None):
     """
@@ -133,17 +133,44 @@ def parse_danger_zones(section_text, lat, lon, section_title=None):
             try:
                 dist_text = line.split(':', 1)[1].strip()
 
+                # Robust parsing: Skip line if it doesn't clearly end in "km" or contains unparseable values
+                if not dist_text.endswith("km") and "km" not in dist_text:
+                    # Special check: maybe it's just a value line that isn't a distance (e.g. pressure Pa, m/s etc.)
+                    # If this line was categorized by section hint but isn't actually a distance line, skip it silently.
+                    continue
+
                 # Skip zones without valid distance data
-                if 'None' not in dist_text:
+                if 'None' not in dist_text and dist_text:
                     start_dist_val, end_dist_val = 0.0, 0.0
                     
                     # Parse distance ranges
-                    if '-' in dist_text:  # Range format "X-Y km"
-                        parts = dist_text.replace('km', '').strip().split('-', 1)
+                    # Remove 'km' first to just get numbers/hyphens
+                    # Also handle edge cases where dist_text might have extra trailing chars
+                    cleaned_dist = dist_text.replace('km', '').strip()
+                    if not cleaned_dist:
+                        continue 
+
+                    if '-' in cleaned_dist:  # Range format "X-Y"
+                        parts = cleaned_dist.split('-', 1)
+                        # Check bits to ensure they are numeric
+                        if not parts[0].strip():
+                            continue
                         start_dist_val = float(parts[0])
-                        end_dist_val = float(parts[1] if len(parts) > 1 else parts[0])
-                    else:  # Single value format "X km" (implies 0 to X)
-                        end_dist_val = float(dist_text.replace('km', '').strip())
+                        # If second part is empty or non-numeric, use same as start? Or fail?
+                        # Generally if it parses, assume good.
+                        if len(parts) > 1 and parts[1].strip():
+                            end_dist_val = float(parts[1])
+                        else:
+                            end_dist_val = start_dist_val
+                    else:  # Single value format "X" (implies 0 to X)
+                        if not cleaned_dist.strip(): 
+                             continue
+                        try:
+                            # If cleaned_dist is e.g. "EF5", float() will fail, which is good -> except block.
+                            end_dist_val = float(cleaned_dist)
+                        except ValueError:
+                             # Not a number (e.g. some text residue), skip
+                             continue
                         start_dist_val = 0.0
 
                     # Validate zone significance and generate coordinates

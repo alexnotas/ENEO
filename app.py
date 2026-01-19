@@ -30,15 +30,15 @@ Date: July 2025
 """
 
 from flask import Flask, request, jsonify, render_template
-from results import run_simulation_full
-from population_calculator import calculate_population_in_zones
+from src.results import run_simulation_full
+from src.population_calculator import calculate_population_in_zones
 from shapely.geometry import Point, Polygon
 import json
 import math
-from gdp_calculator import calculate_economic_damage
-from utils import get_ocean_depth_from_geotiff, m_to_km
-from translation_utils import set_language
-from visualization_utils import generate_visualization_data
+from src.gdp_calculator import calculate_economic_damage
+from src.utils import get_ocean_depth_from_geotiff, m_to_km
+from src.translation_utils import set_language
+from src.visualization_utils import generate_visualization_data
 import numpy as np
 import random
 import requests
@@ -130,7 +130,7 @@ def simulate():
         
         # Add translated country names to the population data
         if 'countries' in population_data:
-            from translation_utils import get_translation
+            from src.translation_utils import get_translation
             for country in population_data['countries']:
                 country_name = country.get('name', '')
                 # Add translated name as a new field

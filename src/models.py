@@ -23,13 +23,13 @@ Dependencies:
 
 import math
 import numpy as N
-from utils import (
+from src.utils import (
     H, rho0, C_D, g_E_atmos, g_E_crater, fp_limit, rho_target, P0, c0, 
     acoustic_efficiency, R_EARTH,
     km_to_m, m_to_km, convert_energy_j_to_mt, compute_scaling_factor,
     curvature_adjustment_factor, get_ocean_depth_from_geotiff, WATER_DENSITY_CONSTANT
 )
-from thresholds import (
+from src.thresholds import (
     # OVERPRESSURE_VULNERABILITY_THRESHOLDS, # Now handled in vulnerability_models.py
     # WIND_VULNERABILITY_THRESHOLDS,         # Now handled in vulnerability_models.py
     # THERMAL_VULNERABILITY_THRESHOLD,     # Now handled in vulnerability_models.py
@@ -38,12 +38,12 @@ from thresholds import (
     get_blast_thresholds
 )
 # Ensure all necessary vulnerability functions are imported
-from vulnerability_models import (
+from src.vulnerability_models import (
     fun_CraterVulnerability, fun_SeismicVulnerability,
     fun_OverpressureVulnerability, fun_ThermRadVulnerability,
     fun_HighWindVulnerability, fun_EjectaBlanketVulnerability
 )
-from translation_utils import get_translation
+from src.translation_utils import get_translation
 
 class AsteroidImpactSimulation:
     """

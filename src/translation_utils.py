@@ -36,7 +36,7 @@ def load_translations(language='en'):
     
     try:
         # Get the directory of the current script
-        current_dir = os.path.dirname(os.path.abspath(__file__))
+        current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         translation_file = os.path.join(current_dir, 'static', 'translations', f'{language}.json')
         
         with open(translation_file, 'r', encoding='utf-8') as f:

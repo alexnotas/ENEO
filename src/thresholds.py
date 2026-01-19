@@ -11,7 +11,7 @@ The module also provides helper functions to map a calculated physical value
 (e.g., wind speed, ejecta thickness) to a human-readable damage category.
 """
 import math
-from translation_utils import get_translation
+from src.translation_utils import get_translation
 
 # Airblast/Overpressure Thresholds (in Pascals)
 # These values represent the peak overpressure required to cause specific types

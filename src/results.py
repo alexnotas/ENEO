@@ -22,21 +22,21 @@ Date: July 2025
 
 import math
 import numpy as np # Ensure numpy is imported if not already at the top
-from models import AsteroidImpactSimulation
-from utils import (
+from src.models import AsteroidImpactSimulation
+from src.utils import (
     km_to_m, m_to_km, convert_energy_j_to_mt,
     g_E_atmos, C_D, rho0, rho_target, get_ocean_depth_from_geotiff, WATER_DENSITY_CONSTANT, ETOPO_FILE_PATH
 )
-from vulnerability_models import (
+from src.vulnerability_models import (
     fun_CraterVulnerability, fun_SeismicVulnerability, fun_OverpressureVulnerability,
     fun_ThermRadVulnerability, fun_HighWindVulnerability, fun_EjectaBlanketVulnerability
 )
-from thresholds import (
+from src.thresholds import (
     get_selected_thermal_thresholds, get_seismic_thresholds, get_ejecta_thresholds, get_blast_thresholds,
     get_ef_wind_thresholds, get_tsunami_amplitude_thresholds,
     get_wind_damage_category, get_ejecta_damage_category, get_thermal_damage_category # Added new imports
 )
-from translation_utils import get_translation
+from src.translation_utils import get_translation
 import math # Ensure math is imported for airburst energy calculation and tsunami calcs
 
 def collect_simulation_results(sim: AsteroidImpactSimulation, entry_results,
@@ -1114,7 +1114,7 @@ def find_specific_vulnerability_distance(sim, entry_results, vuln_type, threshol
         - For Airbursts: Employs models based on burst energy and atmospheric blast wave propagation.
         - Returns 0.0 if a vulnerability type isn't applicable (e.g., ejecta from an airburst).
     """
-    from utils import km_to_m, rho_target
+    from src.utils import km_to_m, rho_target
     
     def calculate_specific_vulnerability_at_distance(r_km, vuln_type):
         """Calculate vulnerability value at specific distance for given hazard type."""
