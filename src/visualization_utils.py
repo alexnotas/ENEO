@@ -2,8 +2,6 @@
 ENEO Asteroid Impact Simulation - Visualization Utilities
 
 This module handles the generation of visualization data for the frontend map.
-It parses simulation text results to identify damage zones and generates
-geographic coordinates for various vulnerability layers.
 
 Author: Alexandros Notas
 Institution: National Technical University of Athens
@@ -24,26 +22,6 @@ def parse_danger_zones(section_text, lat, lon, section_title=None):
     and their respective distance ranges. This information is vital for visualizing the spatial extent of these hazards.
     It uses keyword matching and pattern recognition to automatically classify zones based on their descriptive text.
     
-    Zone types are classified as follows:
-    - Wind zones: Identified by an 'EF' prefix (Enhanced Fujita scale).
-    - Tsunami zones: Recognized by amplitude thresholds (e.g., >1km, >100m) and context.
-    - Seismic zones: Identified by the keyword 'Richter'.
-    - Thermal zones: Detected by keywords like 'burns', 'ignition', or 'Thermal'.
-    - Ejecta zones: Characterized by thickness patterns (e.g., ">X m").
-    - Airblast zones: Inferred from descriptions of structural damage.
-    
-    Args:
-        section_text (str): The raw text segment from the simulation output describing the zones.
-        lat (float): Latitude of the impact point, for generating zone coordinates.
-        lon (float): Longitude of the impact point, for generating zone coordinates.
-        section_title (str, optional): Title of the section being parsed. Used as a contextual hint when
-            keyword-based classification does not yield a result.
-    
-    Returns:
-        list: A list of parsed zone objects, each containing coordinates, description, distance, and type.
-    
-    Expected Text Format:
-        The input text should contain lines with patterns like: "Description: X-Y km" or "Description: X km".
     """
     zones = []
     lines = section_text.split('\n')
@@ -207,57 +185,13 @@ def parse_danger_zones(section_text, lat, lon, section_title=None):
 
 def generate_visualization_data(lat, lon, results_data, results_text, diameter, density, velocity, entry_angle):
     """
-    Prepares a comprehensive dataset for visualizing impact effects on a map.
+    Prepares a dataset for visualizing impact effects on a map.
     
     This function processes the simulation's outputs to create geographically referenced 
     data for identified damage zones, vulnerability assessments, and other impact 
     characteristics. It combines parsed text results (for basic damage zones)
     with more detailed vulnerability analyses derived from calculated thresholds and distances.
     
-    Data is generated for several visualization layers:
-    1. Basic damage zones (from textual simulation results).
-    2. Vulnerability zones (from physical simulation models).
-    3. Combined vulnerability assessments (integrating multiple hazard types).
-    4. Type-specific vulnerability zones (e.g., thermal, seismic).
-    
-    Args:
-        lat (float): Latitude of the impact point.
-        lon (float): Longitude of the impact point.  
-        results_data (dict): Structured data output from the simulation.
-        results_text (str): Human-readable textual output from the simulation.
-        diameter (float): Asteroid diameter in meters.
-        density (float): Asteroid density in kg/m³.
-        velocity (float): Asteroid entry velocity in km/s.
-        entry_angle (float): Atmospheric entry angle in degrees.
-    
-    Returns:
-        dict: A data structure ready for visualization, organized as:
-            {
-                'seismic': [zone_objects],           // Seismic damage zones.
-                'thermal': [zone_objects],           // Thermal damage zones.
-                'airblast': [zone_objects],          // Airblast damage zones.
-                'ejecta': [zone_objects],            // Ejecta deposit zones.
-                'wind': [zone_objects],              // Wind damage zones.
-                'tsunami': [zone_objects],           // Tsunami zones.
-                'vulnerability': [zone_objects],      // Combined vulnerability zones.
-                'vulnerability_combined': [zone_objects], // Explicitly combined vulnerability zones.
-                'vulnerability_thermal': [zone_objects],  // Thermal-specific vulnerability zones.
-                'vulnerability_overpressure': [zone_objects], // Overpressure-specific vulnerability zones.
-                'vulnerability_seismic': [zone_objects],     // Seismic-specific vulnerability zones.
-                'vulnerability_ejecta': [zone_objects],      // Ejecta-specific vulnerability zones.
-                'vulnerability_wind': [zone_objects]         // Wind-specific vulnerability zones.
-            }
-    
-    Each zone object has the following structure:
-        {
-            'coordinates': list,              // Geographic coordinates for the boundary.
-            'description': str,               // Human-readable description.
-            'start_distance': float,          // Inner radius in km.
-            'end_distance': float,           // Outer radius in km.
-            'type': str,                     // Category of the zone.
-            'threshold': float,              // Vulnerability threshold (for vulnerability zones).
-            'specific_vuln_type': str        // Specific type of vulnerability (e.g., 'thermal').
-        }
     """
     # Initialize comprehensive visualization data structure
     visualization = {
