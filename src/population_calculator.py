@@ -6,14 +6,6 @@ high-resolution global population and country boundary datasets. It handles comp
 geographical scenarios including polar regions, antimeridian crossings, and very
 large impact zones that span continents.
 
-Key Features:
-- Global population raster processing with 2.5 arcminute resolution
-- Country-specific casualty attribution using FID mappings
-- Geodesic buffer creation for accurate distance calculations
-- Antimeridian and polar region handling for worldwide coverage
-- Optimized calculations for standard vs. complex geographical scenarios
-- Vulnerability zone processing with graduated casualty thresholds
-
 Data Sources:
 - Population: Global gridded population with country assignments
 - Boundaries: World shapefile with country names and identifiers
@@ -61,13 +53,6 @@ def load_datasets():
     """
     Load global population and country datasets at module startup.
     
-    Loads and prepares:
-    1. Population raster with embedded country FID assignments
-    2. World shapefile for country boundary and name information
-    3. Country name lookup mapping from FID to readable names
-    
-    Implements fallback loading from CSV if shapefile processing fails.
-    Populates global variables RASTER, WORLD_GDF, and COUNTRY_NAMES.
     """
     global RASTER, WORLD_GDF, COUNTRY_NAMES
     
@@ -160,13 +145,7 @@ def normalize_geometry(geom, split_antimeridian=True):
     Ensures geometry coordinates are within standard ranges and optionally
     splits geometries that cross the International Date Line into separate
     polygons for proper processing.
-    
-    Args:
-        geom: Shapely geometry to normalize
-        split_antimeridian: Whether to split at 180/-180 longitude line
-        
-    Returns:
-        list: List of normalized geometries (single item if no splitting)
+   
     """
     if geom.is_empty:
         return [geom]
@@ -808,11 +787,6 @@ def calculate_population_for_standard_zones(lat, lon, vulnerability_zones, max_d
             continue
         
         # Prepare geometry for masking
-        # Using the existing prepare_geometry_for_mask function for consistency
-        # Note: prepare_geometry_for_mask expects WGS84 input if it were to be reused directly from the other function.
-        # Here, tiff_area is already in TIFF CRS.
-        # So, a simplified version or direct construction is needed if tiff_area can be MultiPolygon.
-        # Assuming tiff_area from UTM buffer difference is usually a Polygon or clean MultiPolygon.
         
         geoms_for_mask = []
         if isinstance(tiff_area, Polygon):
@@ -974,12 +948,6 @@ def create_geodesic_buffer(center_lng, center_lat, buffer_radius_km):
     
     # Angular radius in radians
     angular_radius = buffer_radius_km / EARTH_RADIUS
-    
-    # Determine number of points based on buffer size
-    # Scale number of points based on buffer size but with minimum for small buffers
-    # n_points = int(400 * (1 + math.log(1 + buffer_radius_km / 1000)))
-    # Ensure minimum number of points for very small buffers (at least 16)
-    # n_points = max(16, min(1000, n_points))  # Minimum of 16 points, maximum of 1000
     
     # Improved point calculation for small buffers
     n_points = 64  # Minimum points for any buffer size
@@ -1196,18 +1164,8 @@ def create_geodesic_buffer(center_lng, center_lat, buffer_radius_km):
 def calculate_population(lat, lon, vulnerability_zones):
     """
     Main population calculation router that selects optimal processing method.
+
     
-    Analyzes impact location and zone characteristics to determine whether to use
-    simplified fast calculation for standard cases or comprehensive processing
-    for complex geographical scenarios.
-    
-    Args:
-        lat: Impact latitude in decimal degrees
-        lon: Impact longitude in decimal degrees
-        vulnerability_zones: List of vulnerability zone definitions
-        
-    Returns:
-        dict: Population and casualty results from appropriate calculation method
     """
     # Analyze scenario complexity to select processing method
     max_radius = max(zone['end_distance'] for zone in vulnerability_zones)
@@ -1232,8 +1190,6 @@ def cleanup():
     """
     Clean up resources and close open raster files to prevent memory leaks.
     
-    Properly closes any open raster datasets to free system resources
-    and prevent file handle accumulation during repeated calculations.
     """
     global RASTER
     
