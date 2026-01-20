@@ -1,7 +1,7 @@
 """
 ENEO Asteroid Impact Simulation - Utility Functions and Constants Module
 
-This module provides essential utility functions and physical constants used throughout the smimulation.
+This module provides essential utility functions and physical constants used throughout the simulation.
 
 The constants and functions are based on established atmospheric models, impact physics research, and geophysical standards.
 
@@ -63,23 +63,6 @@ ETOPO_FILE_PATH = os.path.join(BASE_DIR, 'maps', "ETOPO_2022_v1_60s_N90W180_surf
 
 # Water density constant (kg/m³) - standard density of seawater for tsunami calculations
 WATER_DENSITY_CONSTANT = 1000  # kg/m^3
-H = 8000.0
-rho0 = 1.0
-C_D = 2.0
-g_E_atmos = 9.81
-g_E_crater = 9.8
-fp_limit = 7.0
-rho_target = 2600.0
-P0 = 101325.0
-c0 = 343.0
-acoustic_efficiency = 1e-8
-R_EARTH = 6371000.0
-BURST_ALTITUDE_THRESHOLD = 1000.0
-
-WATER_DENSITY_CONSTANT = 1000  # kg/m^3
-
-# Transition settings for altitude burst vs. regular reflection
-BURST_ALTITUDE_THRESHOLD = 1000.0  # meters
 
 # =============================================================================
 # UNIT CONVERSION UTILITIES
