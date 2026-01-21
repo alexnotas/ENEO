@@ -127,7 +127,7 @@ ENEO/
 >
 > The high-resolution map files required for this application are too large for GitHub. You must download them separately:
 >
-> 1. Download the map data from Zenodo: **[10.5281/zenodo.18302255](110.5281/zenodo.18302255)**
+> 1. Download the map data from Zenodo: **[https://zenodo.org/records/18326608](https://zenodo.org/records/18326608)**
 > 2. Create a folder named `maps` in the root directory of the project:
 >    ```bash
 >    mkdir maps
