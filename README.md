@@ -141,7 +141,7 @@ ENEO/
 >    ```
 > 3. Extract/Place all downloaded files (shapefiles, CSVs, etc.) into the `maps/` folder.
 >
-> *Alternatively, you can download the full repository including all map data from: [https://zenodo.org/records/18141000](https://zenodo.org/records/18141000)*
+> *Alternatively, you can download the full repository including all map data from: [https://zenodo.org/records/18326608](https://zenodo.org/records/18326608)*
 
 ### Prerequisites
 
