@@ -125,16 +125,23 @@ ENEO/
 
 > **⚠️ IMPORTANT: REQUIRED MAP DATA**
 >
-> The high-resolution map files required for this application are too large for GitHub. You must download them separately:
+> The high-resolution map files required for this application are too large for GitHub. You must download them separately.
 >
-> 1. Download the map data from Zenodo: **[https://zenodo.org/records/18326608](https://zenodo.org/records/18326608)**
+> **Method 1: Automatic Download (Recommended)**
+> Run the included script to automatically download and setup the maps:
+> ```bash
+> python download_data.py
+> ```
+>
+> **Method 2: Manual Download**
+> 1. Download the map data from Zenodo: **[10.5281/zenodo.18302255](110.5281/zenodo.18302255)**
 > 2. Create a folder named `maps` in the root directory of the project:
 >    ```bash
 >    mkdir maps
 >    ```
 > 3. Extract/Place all downloaded files (shapefiles, CSVs, etc.) into the `maps/` folder.
 >
-> *Alternatively, you can download the full repository including all map data from: [https://zenodo.org/records/18326608](https://zenodo.org/records/18326608)*
+> *Alternatively, you can download the full repository including all map data from: [https://zenodo.org/records/18141000](https://zenodo.org/records/18141000)*
 
 ### Prerequisites
 
