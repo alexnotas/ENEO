@@ -220,17 +220,23 @@ http://localhost:5000
 
 3. **The application should now be running!**
 
-### ✅ Validation & Testing
+## ✅ Validation & Testing
 
-To ensure scientific accuracy, the simulation models (Physics & Vulnerability) are validated against established benchmarks (ARMOR, EIEP) and published literature (Rumpf et al., 2017).
+ENEO separates **unit tests** (fast, automated checks) from **validation scripts** (manual, print-based reproduction of published benchmarks).
 
-To reproduce the validation results:
+### Unit Tests (automated)
+Run the unit tests in `tests/unit/` to validate core physics utilities and model invariants:
 
-1. **Physics Validation** (Airburst & Ground Impact scenarios):
-   Run the `tests/test_physics.py` test module.
+- `tests/unit/test_utils.py`
+- `tests/unit/test_models.py`
 
-2. **Vulnerability Validation** (Population casualty estimates):
-   Run the `tests/test_vulnerability.py` test module.
+### Validation Scripts (manual reproduction)
+To reproduce the published/benchmark validation scenarios, run the scripts in `tests/validation/`:
+
+- `tests/validation/validation_physics.py` (Airburst & Ground Impact scenarios)
+- `tests/validation/validation_vulnerability.py` (Population casualty estimates)
+
+These validation scripts print values for manual comparison with ARMOR/EIEP benchmarks and Rumpf et al. (2017), and are intentionally **not** strict unit tests.
 
 ### Using the Simulator
 
