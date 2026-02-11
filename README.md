@@ -23,7 +23,7 @@
 
 ## � Overview
 
-**ENEO** is a web-based application for simulating Near-Earth Object (NEO) impact events and analyzing their potential consequences on Earth. Developed as part of a thesis project at the **National Technical University of Athens (NTUA)**, this platform provides comprehensive physics-based modeling of asteroid impacts, including atmospheric entry, crater formation, blast effects, seismic impacts, thermal radiation, ejecta and population/economic impact assessments.
+**ENEO** is a web-based application for simulating Near-Earth Object (NEO) impact events and analyzing their potential consequences on Earth. Developed as part of a thesis project at the **National Technical University of Athens (NTUA)**, this platform provides comprehensive physics-based modeling of NEO impacts, including atmospheric entry, crater formation, blast effects, seismic impacts, thermal radiation, ejecta and population/economic impact assessments. **ENEO** provides a unified, modular architecture and is the only open-source tool that simulates NEO impact scenarios from atmospheric entry to preliminary socio-economic impact.
 
 ### 🎯 Purpose
 
@@ -33,7 +33,10 @@ This simulator allows researchers, students, and space enthusiasts to:
 - Assess potential population casualties and preliminary economic damage
 - Study various impact phenomena
 - Integrate real NEO data from NASA's Sentry API
+- Use the source code to empower similar projects without needing to code the whole project from the start
+- The opportunity to experiment and update physics and vulnerability equations
 
+  
 ---
 
 ## ✨ Features
@@ -49,13 +52,14 @@ This simulator allows researchers, students, and space enthusiasts to:
   - Atmospheric fragmentation and pancake effects
   - Crater formation modeling (transient and final crater dimensions)
   - Airblast overpressure calculations
+  - Hurricane-like winds calculations
   - Thermal radiation effects and burn zones
   - Seismic wave propagation and earthquake magnitude
   - Ejecta blanket distribution
   - Preliminary tsunami generation for ocean impacts
 
 - **👥 Population & Economic Impact**
-  - Global population density analysis using gridded population data
+  - Global population effects analysis using gridded population data
   - Vulnerability models for different hazard types
   - Country-by-country casualty estimates
   - Economic damage calculations based on GDP per capita
@@ -217,7 +221,10 @@ python app.py
 ```
 http://localhost:5000
 ```
-
+or for all the icons to work:
+```
+http://127.0.0.1:5000
+```
 3. **The application should now be running!**
 
 ## ✅ Validation & Testing
@@ -233,10 +240,10 @@ Run the unit tests in `tests/unit/` to validate core physics utilities and model
 ### Validation Scripts (manual reproduction)
 To reproduce the published/benchmark validation scenarios, run the scripts in `tests/validation/`:
 
-- `tests/validation/validation_physics.py` (Airburst & Ground Impact scenarios)
-- `tests/validation/validation_vulnerability.py` (Population casualty estimates)
+- `tests/validation/validation_physics.py` (Reproduce the physics test results)
+- `tests/validation/validation_vulnerability.py` (Reproduce the vulnerability test results)
 
-These validation scripts print values for manual comparison with ARMOR/EIEP benchmarks and Rumpf et al. (2017), and are intentionally **not** strict unit tests.
+These validation scripts print values for manual comparison with established benchmarks and are intentionally **not** strict unit tests.
 
 ### Using the Simulator
 
@@ -250,13 +257,14 @@ These validation scripts print values for manual comparison with ARMOR/EIEP benc
    - **Distance**: Reference distance for analysis (km)
 
 2. **Set Impact Location:**
-   - Enter latitude and longitude coordinates
-   - Or click on the interactive map to select a location
+   - Enter latitude and longitude coordinates if you run only the Python script
+   - Click on the interactive map to select a location if you are running the UI
 
 3. **Run Simulation:**
    - Click the "Run Simulation" button
-   - Wait for calculations to complete (typically 5-30 seconds)
-
+   - Wait for calculations to complete
+  
+     
 4. **View Results:**
    - **Summary Tab**: Overview of impact effects
    - **Detailed Results**: Comprehensive breakdown of all hazards
@@ -273,10 +281,6 @@ These validation scripts print values for manual comparison with ARMOR/EIEP benc
 
 **Switch Languages:**
 - Use the language switcher to toggle between English and Greek
-
-**Compare Scenarios:**
-- Save multiple simulation results
-- Compare different impact parameters side-by-side
 
 ---
 
@@ -330,8 +334,6 @@ Population vulnerability calculations based on research by **C. Rumpf et al. (20
 - Seismic structural collapse probabilities
 - Ejecta fragment impact risk
 
-**Reference:** Rumpf, C. M., Lewis, H. G., & Atkinson, P. M. (2017). "Population Vulnerability Models for Asteroid Impact Risk Assessment." *Meteoritics & Planetary Science*, 52(6), 1082–1102.
-
 ---
 
 ## 📄 License
@@ -355,9 +357,7 @@ National Technical University of Athens (NTUA)
 
 - **National Technical University of Athens (NTUA)** - School of Mining and Metallurgical Engineering
 - **NASA** - For the Sentry API and NEO data
-- **World Bank** - For population and GDP datasets
 - **Research Community** - For published impact physics models and vulnerability studies
-- **Open Source Contributors** - For the excellent libraries that make this project possible
 
 ---
 
@@ -369,25 +369,10 @@ National Technical University of Athens (NTUA)
 
 ---
 
-## 🔬 Citation
-
-If you use ENEO in your research, please cite:
-
-```bibtex
-@mastersthesis{notas2025eneo,
-  authors = {Notas, Alexandros, Prof. Dimmitrios Kaliampakos},
-  title = {ENEO: A Public, Interactive Decision-Support Platform for Bridging the Near-Earth Object Risk Perception Gap},
-  school = {National Technical University of Athens},
-  year = {2025},
-  month = {July}
-}
-```
-
----
 
 ## 📊 Project Status
 
-**Current Version:** 1.0  
+**Current Version:** 1.0.0 
 **Status:** Active Development  
 **Last Updated:** January 2026
 
