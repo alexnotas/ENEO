@@ -3,9 +3,13 @@ message: "If you use this software, please cite it as below."
 authors:
   - family-names: "Notas"
     given-names: "Alexandros"
+    email: "alexnotas@metal.ntua.gr"
+    affiliation: "National Technical University of Athens"
   - family-names: "Kaliampakos"
     given-names: "Dimitrios"
     prefix: "Prof."
-title: "ENEO"
-date-released: 2026-01-19
+    affiliation: "National Technical University of Athens"
+title: "ENEO: An open-source web-based framework for end-to-end Near-Earth Object impact simulation and risk assessment"
+version: "1.0.0"
+date-released: 2026-02-20
 url: "https://github.com/alexnotas/ENEO"
