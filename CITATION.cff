@@ -3,7 +3,7 @@ message: "If you use this software, please cite it as below."
 authors:
   - family-names: "Notas"
     given-names: "Alexandros"
-    email: "alexnotas@metal.ntua.gr"
+    email: "alexnotas@mail.ntua.gr"
     affiliation: "National Technical University of Athens"
   - family-names: "Kaliampakos"
     given-names: "Dimitrios"
