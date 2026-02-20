@@ -138,7 +138,7 @@ ENEO/
 > ```
 >
 > **Method 2: Manual Download**
-> 1. Download the map data from Zenodo: **[10.5281/zenodo.18302255](110.5281/zenodo.18302255)**
+> 1. Download the map data from Zenodo: **[https://zenodo.org/records/18302255](https://zenodo.org/records/18302255)**
 > 2. Create a folder named `maps` in the root directory of the project:
 >    ```bash
 >    mkdir maps
@@ -320,10 +320,9 @@ ENEO implements peer-reviewed scientific models for asteroid impact simulation:
 - Ejecta thickness profiles
 - Fragment size and velocity
 
-#### 7. **Tsunami** (Ocean Impacts)
+#### 7. **Tsunami(preliminary/under development)** (Ocean Impacts)
 - Wave amplitude generation
-- Deep water wave propagation
-- Coastal inundation potential
+- Potential for inundation modeling
 
 ### Vulnerability Models
 
