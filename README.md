@@ -138,7 +138,7 @@ ENEO/
 > ```
 >
 > **Method 2: Manual Download**
-> 1. Download the map data from Zenodo: **[10.5281/zenodo.18302255](110.5281/zenodo.18302255)**
+> 1. Download the map data from Zenodo: **[https://zenodo.org/records/18302255](https://zenodo.org/records/18302255)**
 > 2. Create a folder named `maps` in the root directory of the project:
 >    ```bash
 >    mkdir maps
@@ -198,11 +198,18 @@ pip install flask numpy pandas geopandas shapely rasterio pyproj requests
 ### Step 4: Verify Data Files
 
 Ensure the following data files are present in the `maps/` directory:
-- `world.shp` (and associated .dbf, .shx, .prj files)
-- World Bank population CSV
-- `gdp_data.csv` (Renamed from original World Bank download)
-- `country_codes.xlsx`
-- `country_fid_lookup.csv`
+- `world.shp` (and associated .dbf, .shx, .prj files) - World country boundaries
+- `population_with_country_fid_assigned.tif` - High-resolution gridded population raster
+- `ETOPO_2022_v1_60s_N90W180_surface.tif` - Global ocean depth data (ETOPO 2022)
+- `gdp_data.csv` - GDP per capita data by country
+- `country_codes.xlsx` - Country code mappings
+- `country_fid_lookup.csv` - Country FID lookup table
+
+### System Requirements
+
+- **Disk Space**: Approximately 1.5 GB for map data files
+- **RAM**: Minimum 4 GB recommended (8 GB for large-scale simulations)
+- **Python**: Version 3.8 or higher
 
 ---
 
@@ -320,10 +327,9 @@ ENEO implements peer-reviewed scientific models for asteroid impact simulation:
 - Ejecta thickness profiles
 - Fragment size and velocity
 
-#### 7. **Tsunami** (Ocean Impacts)
+#### 7. **Tsunami(preliminary/under development)** (Ocean Impacts)
 - Wave amplitude generation
-- Deep water wave propagation
-- Coastal inundation potential
+- Potential for inundation modeling
 
 ### Vulnerability Models
 
