@@ -4,6 +4,18 @@
     zoom: 0.9;
     -ms-zoom: 0.9; /* For older Internet Explorer versions, if necessary */
   }
+
+  /* macOS: keep native scale to avoid Leaflet click-position drift */
+  html.mac-platform {
+    zoom: 1 !important;
+    -ms-zoom: 1 !important;
+  }
+
+  /* Android tablets: keep native scale to avoid Leaflet click-position drift */
+  html.android-tablet-platform {
+    zoom: 1 !important;
+    -ms-zoom: 1 !important;
+  }
 }
 
 /* Main Content Container */
