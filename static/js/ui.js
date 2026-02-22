@@ -16,6 +16,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Detect Windows platform for targeted scaling adjustments
   const isWindows = navigator.userAgent.indexOf('Windows') !== -1;
+  const isMac = /Macintosh|Mac OS X/.test(navigator.userAgent) && !/iPhone|iPad|iPod/.test(navigator.userAgent);
+  const isAndroidTablet = /Android/i.test(navigator.userAgent) && !/Mobile/i.test(navigator.userAgent);
+
+  // Add a dedicated class for macOS-specific map click alignment fixes
+  if (isMac) {
+    document.documentElement.classList.add('mac-platform');
+
+    // Ensure Leaflet recalculates map dimensions after platform-specific styles are applied
+    requestAnimationFrame(() => {
+      if (typeof map !== 'undefined' && map) {
+        setTimeout(() => map.invalidateSize(true), 0);
+      }
+    });
+  }
+
+  // Add a dedicated class for Android tablet-specific map click alignment fixes
+  if (isAndroidTablet) {
+    document.documentElement.classList.add('android-tablet-platform');
+
+    // Ensure Leaflet recalculates map dimensions after platform-specific styles are applied
+    requestAnimationFrame(() => {
+      if (typeof map !== 'undefined' && map) {
+        setTimeout(() => map.invalidateSize(true), 0);
+      }
+    });
+  }
   
   // Apply initial scaling based on platform and screen size
   applyAppropriateScaling(isWindows, wrapper);
