@@ -157,7 +157,7 @@ ENEO/
 
 ```bash
 git clone https://github.com/alexnotas/ENEO.git
-cd ENEO-main
+cd ENEO
 ```
 
 ### Step 2: Create a Virtual Environment (Recommended)
